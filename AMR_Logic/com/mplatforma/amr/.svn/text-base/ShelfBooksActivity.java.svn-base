@@ -1,0 +1,96 @@
+package com.mplatforma.amr;
+
+import java.util.ArrayList;
+
+import db.Book;
+import db.DataHelper;
+import android.app.Activity;
+import android.app.ListActivity;
+import android.content.ContentValues;
+import android.database.DataSetObserver;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
+import android.graphics.drawable.BitmapDrawable;
+import android.graphics.drawable.Drawable;
+import android.os.Bundle;
+import android.view.View;
+import android.view.ViewGroup;
+import android.widget.ArrayAdapter;
+import android.widget.ImageButton;
+import android.widget.ListAdapter;
+import android.widget.ListView;
+
+public class ShelfBooksActivity extends ListActivity {
+    /** Called when the activity is first created. */
+	private DataHelper dh;
+	@Override    
+    public void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        //setContentView(R.layout.shelf_books);
+        this.dh = new DataHelper(this);
+        //this.dh.deleteAll();
+        //dh.insert_book(R.drawable.back01, "book1");
+        //dh.insert_book(R.drawable.back02, "book2");
+        //ArrayList<Book> books = dh.getAllBooks();
+        
+        //setContentView(R.layout.shelf_books);
+      
+        // Drawable dr = getResources().getDrawable(R.drawable.shelf);
+       // dr.get
+       // BitmapDrawable bdr = new BitmapDrawable();
+      //  this.setWallpaper(.getBitmap());
+      //  ListView list = (ListView)findViewById(R.id.mylistView1);
+       // ArrayAdapter<String> ada = new ArrayAdapter<String>(this, android.R.layout.simple_list_item_1,books);
+      //  for(int i = 0; i < books.length;i++)ada.add(books[i]);
+      //  list.setAdapter(ada);
+      //  ada.setDropDownViewResource(R.id.mylistView1);
+      //  setListAdapter(ada);
+        /*
+        ArrayList<String> string_list = new ArrayList<String>();
+        ArrayList image_list = new ArrayList();
+        string_list.add("book1");
+        string_list.add("book2");
+        string_list.add("book3");
+        image_list.add(R.drawable.book1);
+        image_list.add(R.drawable.book2);
+        image_list.add(R.drawable.book3);
+        */
+        //for (Book b : books){
+        //	string_list.add(b.getTitle());
+        //	image_list.add(b.getCover());
+        //}
+        //ArrayAdapter<String> adapter = new MySimpleArrayAdapter(this, string_list, image_list);
+        int[] images = new int[3];
+        images[0] = R.drawable.book1;
+        images[1] = R.drawable.book2;
+        images[2] = R.drawable.book3;
+        String[] array_of_books = new String[3];
+        array_of_books[0] = "book1";
+        array_of_books[1] = "book2";
+        array_of_books[2] = "book3";
+        //for(int i=0; i<books.size(); i++){
+        //	array_of_books[i] = books.get(i).getTitle();
+        //}
+        ArrayAdapter<String> adapter = new MySimpleArrayAdapter(this, array_of_books);
+        setListAdapter(adapter);  
+        
+    }
+ /*   private String[] books2={"Ідіот. Достоєвський","Андроид. Професійне програмування",
+    		"Билини. Київський цикл.",
+    		"Небо Левка Мацієвича",
+    		"Розкуркулення на Олександрівщині",
+    		"Дорога в бессметрие",
+    		"Час \"дешевого клоуна\" Українська освіта: випробування реформами",
+    		"Сакральний світ трипільської цивілізації.",
+    		"Юридичний журнал №6(108) 2011",
+    		"Великий рейдерський словник.",
+    		"Шпаргалка для водія: виробничо-практичне видання",
+    		"Цивільне право та податкове законодавство: оптимізація оподаткування",
+    		"Other"};*/
+    
+    //private String[] books={"Господарський процесуальний кодекс України",
+    //	    "Цивільне процесуальне право України",
+    //	    "Urbis et Vicus",
+    //	    "Естетика Лесі Українки",
+    //	    "Вибрані праці з категорії граматики та лінгвотекстології"};
+}

@@ -1,0 +1,165 @@
+package db;
+
+
+import java.io.ByteArrayInputStream;
+import java.util.ArrayList;
+
+import android.content.Context;
+//import android.database.Cursor;
+import android.database.Cursor;
+import android.database.sqlite.SQLiteDatabase;
+import android.database.sqlite.SQLiteOpenHelper;
+import android.database.sqlite.SQLiteStatement;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
+import android.util.Log;
+ 
+//import java.util.ArrayList;
+//import java.util.List;
+ 
+public class CopyOfDataHelper {
+ 
+   private static final String DATABASE_NAME = "AMR_DB.db";
+   private static final int DATABASE_VERSION = 1;
+   private static final String TABLE_NAME = "bitmaps";
+   public static final String KEY_IMG = "image";
+   
+   
+   private static final String DATABASE_CREATE = "create table bitmaps(_id integer primary key autoincrement, " 
+		               + "bitmap blob not null, zoom double not null);";
+//   +
+//		               "create table bookmarks (_id integer primary key autoincrement, " 
+//		               + "_id_book integer not null, page_number integer not null, desc string);";
+// 
+   private Context context;
+   private SQLiteDatabase db;
+ 
+   private SQLiteStatement insertStmt,ins_bookmark_stmt;
+   
+   private static final String INSERT = "insert into "
+      + TABLE_NAME + "(_id,bitmap, zoom) values (NULL,?,?)";
+   private static final String INSERT_BOOKMARK = "insert into bookmarks (_id,_id_book, page_number,desc) values (NULL,?,?,?)";
+ 
+   public CopyOfDataHelper(Context context) {
+      this.context = context;
+      OpenHelper openHelper = new OpenHelper(this.context);
+      this.db = openHelper.getWritableDatabase();
+      this.insertStmt = this.db.compileStatement(INSERT);
+     // this.ins_bookmark_stmt = this.db.compileStatement(INSERT_BOOKMARK);
+   }
+ 
+   public long insert_bookmark(int id_book,int page,String desc) {
+      this.ins_bookmark_stmt.bindLong(1,  id_book);
+      this.ins_bookmark_stmt.bindLong(2, page);
+      this.ins_bookmark_stmt.bindString(3, desc);
+      return this.ins_bookmark_stmt.executeInsert();
+   }
+   public long insert(byte[] bMapArray,double zoom) {
+	      this.insertStmt.bindBlob(1,  bMapArray);
+	      this.insertStmt.bindDouble(2, zoom);
+	      return this.insertStmt.executeInsert();
+	   }
+   
+   public Bitmap get(int page){
+	  
+	   Bitmap bi = null;
+	   Cursor c = this.db.rawQuery("SELECT * FROM " +TABLE_NAME + ";", null);
+	   if(c.getCount() > 0){
+		   int count = 0;
+		   while (count != page)
+		   {
+			   c.moveToNext();
+			   ++count;
+		   }
+		   ByteArrayInputStream inputStream = new ByteArrayInputStream(c.getBlob(1));
+		   bi = BitmapFactory.decodeStream(inputStream);   
+		   if (c != null && !c.isClosed())
+		         c.close();
+	  	  
+	   }
+	return bi;
+	   
+   }
+   
+   public ArrayList<Bookmark> getAllBookmarks(){
+		  ArrayList<Bookmark> arr = new ArrayList<Bookmark>();
+		  
+	   Cursor c = this.db.rawQuery("SELECT * FROM bookmarks;", null);
+	   if(c.getCount() > 0){
+		   int count = 0;
+		   while (count < c.getCount())
+		   {
+			 // Bookmark b = new Bookmark(c.getInt(0), c.getInt(1), c.getInt(2), c.getString(3));
+			  //arr.add(b);
+			   c.moveToNext();
+			   ++count;
+		   }
+		   if (c != null && !c.isClosed())
+		         c.close();
+	  	  
+	   }
+	return arr;
+	   
+   }
+   public double getZoom(int page){
+		  
+	   double zoom = 0;
+	   Cursor c = this.db.rawQuery("SELECT * FROM " +TABLE_NAME + ";", null);
+	   if(c.getCount() > 0){
+		   int count = 0;
+		   while (count != page)
+		   {
+			   c.moveToNext();
+			   ++count;
+		   }
+		   zoom = c.getDouble(2);
+		   if (c != null && !c.isClosed())
+		         c.close();
+	  	  
+	   }
+	return zoom;
+	   
+   }
+ 
+   public void deleteAll() {
+      this.db.delete(TABLE_NAME, null, null);
+     // this.db.delete("bookmarks", null, null);
+   }
+ 
+  /* public List<byte[]> selectAll() {
+      List<byte[]> list = new ArrayList<byte[]>();
+      Cursor cursor = this.db.query(TABLE_NAME, new String(byte[][]) {}, 
+        null, null, null, null, "name desc");
+      if (cursor.moveToFirst()) {
+         do {
+            list.add(cursor.getBlob([0])); 
+         } while (cursor.moveToNext());
+      }
+      if (cursor != null && !cursor.isClosed()) {
+         cursor.close();
+      }
+      return list;
+   }
+   */
+ 
+   private static class OpenHelper extends SQLiteOpenHelper {
+ 
+      OpenHelper(Context context) {
+         super(context, DATABASE_NAME, null, DATABASE_VERSION);
+      }
+ 
+      @Override
+      public void onCreate(SQLiteDatabase db) {
+    	  db.execSQL(DATABASE_CREATE); 
+    
+      }
+ 
+      @Override
+      public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
+         Log.w("Example", "Upgrading database, this will drop tables and recreate.");
+         db.execSQL("DROP TABLE IF EXISTS " + TABLE_NAME);
+       //  db.execSQL("DROP TABLE IF EXISTS bookmarks");    
+         onCreate(db);
+      }
+   }
+}

@@ -1,0 +1,29 @@
+K 25
+svn:wc:ra_dav:version-url
+V 58
+/svn/repo/!svn/ver/19/AMR_K/crypto/org/bouncycastle/crypto
+END
+RuntimeCryptoException.java
+K 25
+svn:wc:ra_dav:version-url
+V 86
+/svn/repo/!svn/ver/19/AMR_K/crypto/org/bouncycastle/crypto/RuntimeCryptoException.java
+END
+StreamCipher.java
+K 25
+svn:wc:ra_dav:version-url
+V 76
+/svn/repo/!svn/ver/19/AMR_K/crypto/org/bouncycastle/crypto/StreamCipher.java
+END
+DataLengthException.java
+K 25
+svn:wc:ra_dav:version-url
+V 83
+/svn/repo/!svn/ver/19/AMR_K/crypto/org/bouncycastle/crypto/DataLengthException.java
+END
+CipherParameters.java
+K 25
+svn:wc:ra_dav:version-url
+V 80
+/svn/repo/!svn/ver/19/AMR_K/crypto/org/bouncycastle/crypto/CipherParameters.java
+END

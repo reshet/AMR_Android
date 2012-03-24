@@ -1,0 +1,101 @@
+K 25
+svn:wc:ra_dav:version-url
+V 37
+/svn/repo/!svn/ver/8/AMR_K/res/layout
+END
+file_row.xml
+K 25
+svn:wc:ra_dav:version-url
+V 50
+/svn/repo/!svn/ver/8/AMR_K/res/layout/file_row.xml
+END
+main.xml
+K 25
+svn:wc:ra_dav:version-url
+V 46
+/svn/repo/!svn/ver/8/AMR_K/res/layout/main.xml
+END
+scroll_layout.xml
+K 25
+svn:wc:ra_dav:version-url
+V 55
+/svn/repo/!svn/ver/8/AMR_K/res/layout/scroll_layout.xml
+END
+dialog_load.xml
+K 25
+svn:wc:ra_dav:version-url
+V 53
+/svn/repo/!svn/ver/8/AMR_K/res/layout/dialog_load.xml
+END
+local_reader_main.xml
+K 25
+svn:wc:ra_dav:version-url
+V 59
+/svn/repo/!svn/ver/8/AMR_K/res/layout/local_reader_main.xml
+END
+file_explorer.xml
+K 25
+svn:wc:ra_dav:version-url
+V 55
+/svn/repo/!svn/ver/8/AMR_K/res/layout/file_explorer.xml
+END
+rowlayout.xml
+K 25
+svn:wc:ra_dav:version-url
+V 51
+/svn/repo/!svn/ver/8/AMR_K/res/layout/rowlayout.xml
+END
+shelf_bookmarks.xml
+K 25
+svn:wc:ra_dav:version-url
+V 57
+/svn/repo/!svn/ver/8/AMR_K/res/layout/shelf_bookmarks.xml
+END
+account.xml
+K 25
+svn:wc:ra_dav:version-url
+V 49
+/svn/repo/!svn/ver/8/AMR_K/res/layout/account.xml
+END
+shelf_main.xml
+K 25
+svn:wc:ra_dav:version-url
+V 52
+/svn/repo/!svn/ver/8/AMR_K/res/layout/shelf_main.xml
+END
+dialog_pagenumber.xml
+K 25
+svn:wc:ra_dav:version-url
+V 59
+/svn/repo/!svn/ver/8/AMR_K/res/layout/dialog_pagenumber.xml
+END
+pdf_file_password.xml
+K 25
+svn:wc:ra_dav:version-url
+V 59
+/svn/repo/!svn/ver/8/AMR_K/res/layout/pdf_file_password.xml
+END
+wait_dialog.xml
+K 25
+svn:wc:ra_dav:version-url
+V 53
+/svn/repo/!svn/ver/8/AMR_K/res/layout/wait_dialog.xml
+END
+pdf_file_select.xml
+K 25
+svn:wc:ra_dav:version-url
+V 57
+/svn/repo/!svn/ver/8/AMR_K/res/layout/pdf_file_select.xml
+END
+bookmark_layout.xml
+K 25
+svn:wc:ra_dav:version-url
+V 57
+/svn/repo/!svn/ver/8/AMR_K/res/layout/bookmark_layout.xml
+END
+shelf_books.xml
+K 25
+svn:wc:ra_dav:version-url
+V 53
+/svn/repo/!svn/ver/8/AMR_K/res/layout/shelf_books.xml
+END

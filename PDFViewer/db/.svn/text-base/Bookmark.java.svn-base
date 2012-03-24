@@ -1,0 +1,35 @@
+package db;
+
+import java.io.Serializable;
+
+public class Bookmark implements Serializable{
+	private int id_book;
+	private int page;
+	private String desc;
+	private int id;
+	public Bookmark(int id,int id_book,int page, String desc)
+	{
+		this.id = id;
+		this.desc = desc;
+		this.id_book = id_book;
+		this.page = page;
+	}
+	public int getId_book() {
+		return id_book;
+	}
+	public void setId_book(int id_book) {
+		this.id_book = id_book;
+	}
+	public int getPage() {
+		return page;
+	}
+	public void setPage(int page) {
+		this.page = page;
+	}
+	public String getDesc() {
+		return desc;
+	}
+	public void setDesc(String desc) {
+		this.desc = desc;
+	}
+}

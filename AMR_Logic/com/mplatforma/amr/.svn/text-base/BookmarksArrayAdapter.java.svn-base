@@ -1,0 +1,93 @@
+package com.mplatforma.amr;  
+  
+import java.util.ArrayList;
+
+import net.sf.andpdf.pdfviewer.PdfFileSelectActivity;
+import net.sf.andpdf.pdfviewer.PdfViewerActivity;
+
+import db.Bookmark;
+
+import android.app.Activity;  
+import android.content.Intent;
+import android.graphics.Color;
+import android.view.LayoutInflater;  
+import android.view.View;  
+import android.view.ViewGroup;  
+import android.view.View.OnClickListener;
+import android.widget.ArrayAdapter;  
+import android.widget.Button;
+import android.widget.ImageView;  
+import android.widget.TextView;  
+  
+public class BookmarksArrayAdapter extends ArrayAdapter<String> {  
+    private final Activity context;  
+    private final ArrayList<Bookmark> bms;  
+  
+    public BookmarksArrayAdapter(Activity context, ArrayList<Bookmark> bm) {  
+        super(context, R.layout.bookmark_layout,new String[bm.size()]);  
+//    	String [] arr = new String[bm.size()];
+//    	int pos = 0;
+//    	for(Bookmark b:bm)
+//    	{
+//    		arr[pos++] = b.getDesc();
+//    	}
+ 
+        this.context = context;  
+        this.bms = bm;
+    }  
+    OnClickListener BookmarksListener = new OnClickListener() {
+    	public static final String EXTRA_PDFFILENAME = "net.sf.andpdf.extra.PDFFILENAME";
+    	public static final String EXTRA_USEFONTSUBSTITUTION = "net.sf.andpdf.extra.USEFONTSUBSTITUTION";
+   	    public static final String EXTRA_KEEPCACHES = "net.sf.andpdf.extra.KEEPCACHES";
+   	    public void onClick(View v) {
+    	    	
+    	    	Intent intent = new Intent(context,PdfViewerActivity.class)
+    			.putExtra(EXTRA_PDFFILENAME, "/mnt/sdcard/down/HPL-2004-76 (1).pdf")
+    			.putExtra(EXTRA_USEFONTSUBSTITUTION, false)
+    			.putExtra(EXTRA_KEEPCACHES, false)
+    			.putExtra("topage", 4);
+    			context.startActivity(intent);
+    			
+            //v.setBackgroundColor(Color.GREEN);
+        }
+    };
+    @Override  
+    public View getView(final int position, View convertView, ViewGroup parent) {  
+        LayoutInflater inflater = context.getLayoutInflater();  
+        View rowView = inflater.inflate(R.layout.bookmark_layout, null, true);  
+        
+        TextView textView = (TextView) rowView.findViewById(R.id.bm_desc);  
+        //ImageView imageView = (ImageView) rowView.findViewById(R.id.icon);  
+        textView.setText(bms.get(position).getDesc());  
+        Button button =  (Button) rowView.findViewById(R.id.GO_btn);
+        button.setText("Стор."+bms.get(position).getPage());
+        button.setOnClickListener(new OnClickListener() {
+        	public static final String EXTRA_PDFFILENAME = "net.sf.andpdf.extra.PDFFILENAME";
+       	 	public static final String EXTRA_USEFONTSUBSTITUTION = "net.sf.andpdf.extra.USEFONTSUBSTITUTION";
+       	    public static final String EXTRA_KEEPCACHES = "net.sf.andpdf.extra.KEEPCACHES";
+       	    @Override
+			public void onClick(View v) {
+       	    	Intent intent = new Intent(context,PdfViewerActivity.class)
+    			.putExtra(EXTRA_PDFFILENAME, "/mnt/sdcard/down/HPL-2004-76 (1).pdf")
+    			.putExtra(EXTRA_USEFONTSUBSTITUTION, false)
+    			.putExtra(EXTRA_KEEPCACHES, false)
+    			.putExtra("topage", bms.get(position).getPage());
+    			context.startActivity(intent);
+			}
+		});
+        
+       
+        // Change the icon for Windows and iPhone  
+//        String s = names[position];  
+//        
+//        if (s.startsWith("Windows7") || s.startsWith("iPhone")  
+//                || s.startsWith("Solaris")) {  
+//  
+//            imageView.setImageResource(R.drawable.ic_launcher);
+//        } else {  
+//            imageView.setImageResource(R.drawable.book1);  
+//        }  
+//  
+        return rowView;  
+    }  
+}  

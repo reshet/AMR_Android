@@ -1,0 +1,39 @@
+package com.mplatforma.amr;
+
+import java.util.ArrayList;
+
+import db.Bookmark;
+import db.DataHelper;
+import android.app.Activity;
+import android.app.ListActivity;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
+import android.graphics.drawable.BitmapDrawable;
+import android.graphics.drawable.Drawable;
+import android.os.Bundle;
+import android.widget.ArrayAdapter;
+import android.widget.ImageButton;
+
+public class ShelfBookmarksActivity extends ListActivity {
+    /** Called when the activity is first created. */
+    private DataHelper dhlpr;
+	@Override
+    public void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        
+       // dhlpr = new DataHelper(this);
+       // ArrayList<Bookmark> bms = dhlpr.getAllBookmarks();
+        //this.dhlpr.deleteAll();
+        ArrayList<Bookmark> bms = new ArrayList<Bookmark>();
+       bms.add(new Bookmark(12, 2, 1, "My First Bookmark)"));
+       bms.add(new Bookmark(12, 2, 3, "My Second Bookmark"));
+       bms.add(new Bookmark(12, 2, 7, "My Third Bookmark)"));
+        ArrayAdapter<String> adapter = new BookmarksArrayAdapter(this, bms);
+        setListAdapter(adapter);  
+      //  setContentView(R.layout.shelf_bookmarks);
+       // Drawable dr = getResources().getDrawable(R.drawable.shelf);
+       // dr.get
+       // BitmapDrawable bdr = new BitmapDrawable();
+      //  this.setWallpaper(.getBitmap());
+    }
+}

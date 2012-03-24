@@ -1,0 +1,23 @@
+K 25
+svn:wc:ra_dav:version-url
+V 57
+/svn/repo/!svn/ver/19/AMR_K/ThirdParty/net/sf/andpdf/refs
+END
+WeakReference.java
+K 25
+svn:wc:ra_dav:version-url
+V 76
+/svn/repo/!svn/ver/19/AMR_K/ThirdParty/net/sf/andpdf/refs/WeakReference.java
+END
+SoftReference.java
+K 25
+svn:wc:ra_dav:version-url
+V 76
+/svn/repo/!svn/ver/19/AMR_K/ThirdParty/net/sf/andpdf/refs/SoftReference.java
+END
+HardReference.java
+K 25
+svn:wc:ra_dav:version-url
+V 76
+/svn/repo/!svn/ver/19/AMR_K/ThirdParty/net/sf/andpdf/refs/HardReference.java
+END

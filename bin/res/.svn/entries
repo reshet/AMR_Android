@@ -1,0 +1,56 @@
+10
+
+dir
+53
+https://mplatforma.com/svn/repo/AMR_K/bin/res
+https://mplatforma.com/svn/repo
+
+
+
+2012-03-18T17:03:55.916853Z
+53
+reshet
+
+
+svn:special svn:externals svn:needs-lock
+
+
+
+
+
+
+
+
+
+
+
+1b731343-5334-42a7-8cc8-72dfc5028148
+
+
+
+
+
+
+0
+
+drawable-hdpi
+dir
+
+
+
+add
+
+drawable-ldpi
+dir
+
+
+
+add
+
+drawable-mdpi
+dir
+
+
+
+add
+

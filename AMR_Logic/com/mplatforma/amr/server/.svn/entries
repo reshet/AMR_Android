@@ -1,0 +1,28 @@
+10
+
+dir
+0
+https://mplatforma.com/svn/repo/AMR_K/AMR_Logic/com/mplatforma/amr/server
+https://mplatforma.com/svn/repo
+add
+
+
+
+
+
+
+
+svn:special svn:externals svn:needs-lock
+
+
+
+
+
+
+
+
+
+
+
+1b731343-5334-42a7-8cc8-72dfc5028148
+

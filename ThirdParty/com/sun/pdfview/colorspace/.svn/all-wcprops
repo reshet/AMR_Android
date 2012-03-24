@@ -1,0 +1,41 @@
+K 25
+svn:wc:ra_dav:version-url
+V 65
+/svn/repo/!svn/ver/19/AMR_K/ThirdParty/com/sun/pdfview/colorspace
+END
+IndexedColor.java
+K 25
+svn:wc:ra_dav:version-url
+V 83
+/svn/repo/!svn/ver/19/AMR_K/ThirdParty/com/sun/pdfview/colorspace/IndexedColor.java
+END
+PDFColorSpace.java
+K 25
+svn:wc:ra_dav:version-url
+V 84
+/svn/repo/!svn/ver/19/AMR_K/ThirdParty/com/sun/pdfview/colorspace/PDFColorSpace.java
+END
+RGBColorSpace.java
+K 25
+svn:wc:ra_dav:version-url
+V 84
+/svn/repo/!svn/ver/19/AMR_K/ThirdParty/com/sun/pdfview/colorspace/RGBColorSpace.java
+END
+AlternateColorSpace.java
+K 25
+svn:wc:ra_dav:version-url
+V 90
+/svn/repo/!svn/ver/19/AMR_K/ThirdParty/com/sun/pdfview/colorspace/AlternateColorSpace.java
+END
+GrayColorSpace.java
+K 25
+svn:wc:ra_dav:version-url
+V 85
+/svn/repo/!svn/ver/19/AMR_K/ThirdParty/com/sun/pdfview/colorspace/GrayColorSpace.java
+END
+CMYKColorSpace.java
+K 25
+svn:wc:ra_dav:version-url
+V 85
+/svn/repo/!svn/ver/19/AMR_K/ThirdParty/com/sun/pdfview/colorspace/CMYKColorSpace.java
+END
