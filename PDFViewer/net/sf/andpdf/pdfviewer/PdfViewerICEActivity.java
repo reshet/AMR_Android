@@ -196,32 +196,32 @@ public class PdfViewerICEActivity extends Activity {
     	    
 
 	private void setContent(String password) {
-        try { 
-        //	showDialog(DIALOG_LOAD);
-    		parsePDF(pdffilename, password);
-	        startRenderThread(mPage, mZoom);
-	        setContentView(mGraphView);
-	        //dismissDialog(DIALOG_LOAD);
-    	}
-        catch (PDFAuthenticationFailureException e) {
-        	setContentView(R.layout.pdf_file_password);
-           	final EditText etPW= (EditText) findViewById(R.id.etPassword);
-           	Button btOK= (Button) findViewById(R.id.btOK);
-        	Button btExit = (Button) findViewById(R.id.btExit);
-            btOK.setOnClickListener(new OnClickListener() {
-				@Override
-				public void onClick(View v) {
-					String pw = etPW.getText().toString();
-		        	setContent(pw);
-				}
-			});
-            btExit.setOnClickListener(new OnClickListener() {
-				@Override
-				public void onClick(View v) {
-					finish();
-				}
-			});
-        }
+//        try { 
+//        //	showDialog(DIALOG_LOAD);
+//    		//parsePDF(pdffilename);
+//	        startRenderThread(mPage, mZoom);
+//	        setContentView(mGraphView);
+//	        //dismissDialog(DIALOG_LOAD);
+//    	}
+//        catch (PDFAuthenticationFailureException e) {
+//        	setContentView(R.layout.pdf_file_password);
+//           	final EditText etPW= (EditText) findViewById(R.id.etPassword);
+//           	Button btOK= (Button) findViewById(R.id.btOK);
+//        	Button btExit = (Button) findViewById(R.id.btExit);
+//            btOK.setOnClickListener(new OnClickListener() {
+//				@Override
+//				public void onClick(View v) {
+//					String pw = etPW.getText().toString();
+//		        	setContent(pw);
+//				}
+//			});
+//            btExit.setOnClickListener(new OnClickListener() {
+//				@Override
+//				public void onClick(View v) {
+//					finish();
+//				}
+//			});
+//        }
 	}
 	private synchronized void startRenderThread(final int page, final float zoom) {
 		if (backgroundThread != null)
@@ -778,27 +778,29 @@ public class PdfViewerICEActivity extends Activity {
         mGraphView.pageRenderMillis = stopTime-middleTime;
     }
     
-    private void parsePDF(String filename, String password) throws PDFAuthenticationFailureException {
-        long startTime = System.currentTimeMillis();
-    	try {
-        	File f = new File(filename);
-        	long len = f.length();
-        	if (len == 0) {
-        		mGraphView.showText("file '" + filename + "' not found");
-        	}
-        	else {
-        		mGraphView.showText("file '" + filename + "' has " + len + " bytes");
-    	    	openFile(f, password);
-        	}
-    	}
-        catch (PDFAuthenticationFailureException e) {
-        	throw e; 
-		} catch (Throwable e) {
-			e.printStackTrace();
-			mGraphView.showText("Exception: "+e.getMessage());
-		}
-        long stopTime = System.currentTimeMillis();
-        mGraphView.fileMillis = stopTime-startTime;
+    private void parsePDF(Integer book_id) throws PDFAuthenticationFailureException {
+//        long startTime = System.currentTimeMillis();
+//    	try {
+//        	File f = new File(filename);
+//        	long len = f.length();
+//        	if (len == 0) {
+//        		mGraphView.showText("file '" + filename + "' not found");
+//        	}
+//        	else {
+//        		mGraphView.showText("file '" + filename + "' has " + len + " bytes");
+//    	    	openFile(f, password);
+//        	}
+//    	}
+//        catch (PDFAuthenticationFailureException e) {
+//        	throw e; 
+//		} catch (Throwable e) {
+//			e.printStackTrace();
+//			mGraphView.showText("Exception: "+e.getMessage());
+//		}
+//        long stopTime = System.currentTimeMillis();
+//        mGraphView.fileMillis = stopTime-startTime;
+    	//dhlpr.g
+    	//openFile(f, password);
 	}
 
     
