@@ -50,7 +50,7 @@ import android.widget.TextView;
 import android.util.Log;
 import android.view.View;
 import android.view.View.OnClickListener;
-
+//HELLO TANYA
 public class AccountActivity extends Activity {
     /** Called when the activity is first created. */
 	DataHelper dh;
