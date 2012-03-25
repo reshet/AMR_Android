@@ -285,8 +285,12 @@ public class DataHelper {
 	   Cursor c = this.db.rawQuery("SELECT "+PAGE_COLUMN_PNG+" FROM " +PAGE_TABLE_NAME + " WHERE " + PAGE_COLUMN_ID + " = "  + page_id + " ; ", null);
 	   if (!c.isAfterLast()){
 		   c.moveToFirst();
-		   ByteArrayInputStream inputStream = new ByteArrayInputStream(c.getBlob(0));
-		   bi = BitmapFactory.decodeStream(inputStream);   
+		   byte [] ar = c.getBlob(0);
+		   if(ar != null)
+		   {
+			   ByteArrayInputStream inputStream = new ByteArrayInputStream(ar);
+			   	bi = BitmapFactory.decodeStream(inputStream);   
+		   }
 	   }
 	   if (c != null && !c.isClosed()) c.close();
 //	   if(c.getCount() > 0){

@@ -14,6 +14,7 @@ import java.nio.channels.FileChannel;
 import java.text.NumberFormat;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
@@ -54,6 +55,7 @@ import android.widget.ProgressBar;
 import android.widget.TextView;
 
 import com.mplatforma.amr.R;
+import com.mplatforma.amr.server.PageDTO;
 import com.mplatforma.amr.server.ServerConnector;
 import com.sun.pdfview.PDFFile;
 import com.sun.pdfview.PDFImage;
@@ -94,17 +96,17 @@ public class PdfViewerICE2Activity extends Activity {
 	private GraphView mOldGraphView;
 	private GraphView mGraphView;
 	private Integer pdf_id;
-	private PDFFile mPdfFile;
+	private boolean mPdfLoaded = false;
 	private int mPage;
 	private float mZoom;
     private File mTmpFile;
     
-    private PDFPage mPdfPage; 
     private Map<Integer,PDFPage> page_map = new HashMap<Integer, PDFPage>();
     private Thread backgroundThread;
     private Thread bckgrCacheThread = null;
     private Handler uiHandler;
 
+    private List<Integer> pages_IDS = new ArrayList<Integer>();
 	
 	@Override
 	public Object onRetainNonConfigurationInstance() {
@@ -127,8 +129,8 @@ public class PdfViewerICE2Activity extends Activity {
 			Log.e(TAG, "restoring Instance");
 			mOldGraphView = inst.mGraphView;
 			mPage = inst.mPage;
-			mPdfFile = inst.mPdfFile;
-			mPdfPage = inst.mPdfPage;
+			mPdfLoaded = inst.mPdfLoaded;
+			//mPdfPage = inst.mPdfPage;
 			mTmpFile = inst.mTmpFile;
 			mZoom = inst.mZoom;
 			pdf_id = inst.pdf_id;
@@ -159,7 +161,7 @@ public class PdfViewerICE2Activity extends Activity {
 	        mGraphView.pageRenderMillis= mOldGraphView.pageRenderMillis;
 	        mOldGraphView = null;
 	        mGraphView.mImageView.setImageBitmap(mGraphView.mBi);
-	        mGraphView.updateTexts();
+	       // mGraphView.updateTexts();
 	        setContentView(mGraphView);
         }
         else {
@@ -186,7 +188,7 @@ public class PdfViewerICE2Activity extends Activity {
 	        	}
 	        }
 	        
-	        if (pdf_id == 0)
+	        //if (pdf_id == 0)
 	        	//pdffilename = "no file selected";
 
 			mPage = STARTPAGE;
@@ -201,7 +203,7 @@ public class PdfViewerICE2Activity extends Activity {
 	private void setContent(String password) {
         try { 
         //	showDialog(DIALOG_LOAD);
-    		parsePDF(pdf_id,password);
+    		loadPDF(pdf_id,password);
 	        startRenderThread(mPage, mZoom);
 	        setContentView(mGraphView);
 	        //dismissDialog(DIALOG_LOAD);
@@ -229,12 +231,12 @@ public class PdfViewerICE2Activity extends Activity {
 	private synchronized void startRenderThread(final int page, final float zoom) {
 		if (backgroundThread != null)
 			return;
-		mGraphView.showText("reading page "+ page+", zoom:"+zoom);
+	//	mGraphView.showText("reading page "+ page+", zoom:"+zoom);
         backgroundThread = new Thread(new Runnable() {
 			@Override
 			public void run() {
 				try {
-			        if (mPdfFile != null) {
+			        if (mPdfLoaded != false) {
 //			        	File f = new File("/sdcard/andpdf.trace");
 //			        	f.delete();
 //			        	Log.e(TAG, "DEBUG.START");
@@ -258,10 +260,10 @@ public class PdfViewerICE2Activity extends Activity {
 	private void updateImageStatus() {
 //		Log.i(TAG, "updateImageStatus: " +  (System.currentTimeMillis()&0xffff));
 		if (backgroundThread == null) {
-			mGraphView.updateUi();
+			///mGraphView.updateUi();
 			return;
 		}
-		mGraphView.updateUi();
+		//mGraphView.updateUi();
 		mGraphView.postDelayed(new Runnable() {
 			@Override public void run() {
 				updateImageStatus();
@@ -326,7 +328,7 @@ public class PdfViewerICE2Activity extends Activity {
     
     
     private void zoomIn() {
-    	if (mPdfFile != null) {
+    	if (mPdfLoaded != false) {
     		if (mZoom < 4) {
     			mZoom *= 1.5;
     			if (mZoom > 4)
@@ -337,7 +339,7 @@ public class PdfViewerICE2Activity extends Activity {
 	}
 
     private void zoomOut() {
-    	if (mPdfFile != null) {
+    	if (mPdfLoaded != false) {
     		if (mZoom > 0.25) {
     			mZoom /= 1.5;
     			if (mZoom < 0.25)
@@ -348,8 +350,8 @@ public class PdfViewerICE2Activity extends Activity {
 	}
 
 	private void nextPage() {
-    	if (mPdfFile != null) {
-    		if (mPage < mPdfFile.getNumPages()) {
+    	if (mPdfLoaded != false) {
+    		if (mPage < pages_IDS.size()) {
     			mPage += 1;
     			startRenderThread(mPage, mZoom);
     		}
@@ -357,7 +359,7 @@ public class PdfViewerICE2Activity extends Activity {
 	}
 
     private void prevPage() {
-    	if (mPdfFile != null) {
+    	if (mPdfLoaded != false) {
     		if (mPage > 1) {
     			mPage -= 1;
     			startRenderThread(mPage, mZoom);
@@ -366,7 +368,7 @@ public class PdfViewerICE2Activity extends Activity {
 	}
     
 	private void gotoPage() {
-    	if (mPdfFile != null) {
+    	if (mPdfLoaded != false) {
             showDialog(DIALOG_PAGENUM);
     	}
 	}
@@ -391,7 +393,7 @@ public class PdfViewerICE2Activity extends Activity {
 	            			pageNum = Integer.parseInt(strPagenum);
 	            		}
 	            		catch (NumberFormatException ignore) {}
-	            		if ((pageNum!=mPage) && (pageNum>=1) && (pageNum <= mPdfFile.getNumPages())) {
+	            		if ((pageNum!=mPage) && (pageNum>=1) && (pageNum <= pages_IDS.size())) {
 	            			mPage = pageNum;
 	            			startRenderThread(mPage, mZoom);
 	            		}
@@ -558,7 +560,7 @@ public class PdfViewerICE2Activity extends Activity {
 				// page button
 				mBtPage=new Button(context);
 				mBtPage.setLayoutParams(lpChild1);
-				String maxPage = ((mPdfFile==null)?"?":Integer.toString(mPdfFile.getNumPages()));
+				String maxPage = ((mPdfLoaded==false)?"?":Integer.toString(pages_IDS.size()));
 				mBtPage.setText(mPage+"/"+maxPage);
 				mBtPage.setOnClickListener(new OnClickListener() {
 					@Override
@@ -611,20 +613,20 @@ public class PdfViewerICE2Activity extends Activity {
     
 		}
 
-		private void showText(String text) {
-        	Log.i(TAG, "ST='"+text+"'");
-        	mText = text;
-        	updateUi();
-		}
+//		private void showText(String text) {
+//        	Log.i(TAG, "ST='"+text+"'");
+//        	mText = text;
+//        	updateUi();
+//		}
         
-        private void updateUi() {
-        	uiHandler.post(new Runnable() {
-				@Override
-				public void run() {
-		        	updateTexts();
-				}
-			});
-		}
+//        private void updateUi() {
+//        	uiHandler.post(new Runnable() {
+//				@Override
+//				public void run() {
+//		        	updateTexts();
+//				}
+//			});
+//		}
 
         private void updateImage() {
         	uiHandler.post(new Runnable() {
@@ -653,25 +655,25 @@ public class PdfViewerICE2Activity extends Activity {
 			}
 		}
         
-		protected void updateTexts() {
-            mLine1 = "PdfViewer: "+mText;
-            float fileTime = fileMillis*0.001f;
-            float pageRenderTime = pageRenderMillis*0.001f;
-            float pageParseTime = pageParseMillis*0.001f;
-            mLine2 = "render page="+format(pageRenderTime,2)+", parse page="+format(pageParseTime,2)+", parse file="+format(fileTime,2);
-    		int maxCmds = PDFPage.getParsedCommands();
-    		int curCmd = PDFPage.getLastRenderedCommand()+1;
-    		mLine3 = "PDF-Commands: "+curCmd+"/"+maxCmds;
-    		mLine1View.setText(mLine1);
-    		mLine2View.setText(mLine2);
-    		mLine3View.setText(mLine3);
-    		if (mPdfPage != null) {
-	    		if (mBtPage != null)
-	    			mBtPage.setText(mPdfPage.getPageNumber()+"/"+mPdfFile.getNumPages());
-	    		if (mBtPage2 != null)
-	    			mBtPage2.setText(mPdfPage.getPageNumber()+"/"+mPdfFile.getNumPages());
-    		}
-        }
+//		protected void updateTexts() {
+//            mLine1 = "PdfViewer: "+mText;
+//            float fileTime = fileMillis*0.001f;
+//            float pageRenderTime = pageRenderMillis*0.001f;
+//            float pageParseTime = pageParseMillis*0.001f;
+//            mLine2 = "render page="+format(pageRenderTime,2)+", parse page="+format(pageParseTime,2)+", parse file="+format(fileTime,2);
+//    		int maxCmds = PDFPage.getParsedCommands();
+//    		int curCmd = PDFPage.getLastRenderedCommand()+1;
+//    		mLine3 = "PDF-Commands: "+curCmd+"/"+maxCmds;
+//    		mLine1View.setText(mLine1);
+//    		mLine2View.setText(mLine2);
+//    		mLine3View.setText(mLine3);
+//    		if (mPdfPage != null) {
+//	    		if (mBtPage != null)
+//	    			mBtPage.setText(mPdfPage.getPageNumber()+"/"+mPdfLoaded.getNumPages());
+//	    		if (mBtPage2 != null)
+//	    			mBtPage2.setText(mPdfPage.getPageNumber()+"/"+mPdfLoaded.getNumPages());
+//    		}
+//        }
 
 		private String format(double value, int num) {
 			NumberFormat nf = NumberFormat.getNumberInstance();
@@ -690,147 +692,103 @@ public class PdfViewerICE2Activity extends Activity {
         long middleTime = startTime;
        // dismissDialog(DIALOG_LOAD);
     	try {
-    		 if((current_page_number == -1 || current_page_number!=page))
-    	     {
-    			 
-    			 if ((cache_page_number > page))
-    			 {
-    				current_page_number = page;
-     	        	//mGraphView.setPageBitmap(null);
-     	  	        //mGraphView.updateImage();
-     	  	        
-     	  	        //mPdfPage = mPdfFile.getPage(page, true);
-     	  	        /*mPdfPage = mPdfFile.getPage(page, true);
-     	  	        int num = mPdfPage.getPageNumber();
-     	  	        int maxNum = mPdfFile.getNumPages();
-     	  	        float wi = mPdfPage.getWidth();
-     	  	        float hei = mPdfPage.getHeight();
-     	  	        String pageInfo= new File(pdffilename).getName() + " - " + num +"/"+maxNum+ ": " + wi + "x" + hei;
-     	  	        mGraphView.showText(pageInfo);
-     	  	        Log.i(TAG, pageInfo);
-     	  	        RectF clip = null;
-     	  	        middleTime = System.currentTimeMillis();
-     	  	        */
-     	  	        //Bitmap bi = mPdfPage.getImage((int)(wi*zoom), (int)(hei*zoom), clip, true, true);
-     	  	        Bitmap bi = dhlpr.get(page);
+    		
+     	     
+     	  	        Bitmap bi = dhlpr.getPage(pages_IDS.get(page));
      	  	        mZoom = (float)dhlpr.getZoom(page);
      	  	        mGraphView.setPageBitmap(bi);
      	  	        mGraphView.updateImage();
      	  	        
-     	  	        mPdfPage = mPdfFile.getPage(page, true);
-     	  	        if (cache_page_number - page < 2) 
-     	  	        	{
-     	  	        	if (!queue.contains(page+1))queue.add(page+1);
-     	  	        	if (!queue.contains(page+2))queue.add(page+2);
-     	  	        	//queue.add(page-1);
-     	  	        	//queue.add(page+2);
-     	  	        	}
-     	  	        //startcaching();
-    			 }else
-    			 {
-    				 current_page_number = page;
-      	        	 mPdfPage = mPdfFile.getPage(page, true);
-      	        	 //page_map.put(page, mPdfPage);
-    				 int num = mPdfPage.getPageNumber();
-    	  	  	        int maxNum = mPdfFile.getNumPages();
-    	  	  	        float wi = mPdfPage.getWidth();
-    	  	  	        float hei = mPdfPage.getHeight();
-    	  	  	        RectF clip = null;
-    	    		    Bitmap bi = mPdfPage.getImage((int)(wi*zoom), (int)(hei*zoom), clip, true, true);
-    	 	  	        mGraphView.setPageBitmap(bi);
-    	 	  	        mGraphView.updateImage();
-    	 	  	        
-    	 	  	      ByteArrayOutputStream out = new ByteArrayOutputStream();
-     	  	          bi.compress(Bitmap.CompressFormat.PNG, 100, out);
-     	  	          ContentValues cv = new ContentValues();
-     	  	          cv.put(DataHelper.KEY_IMG, out.toByteArray()); 
-     	  	          dhlpr.insert_bitmap(cv.getAsByteArray(DataHelper.KEY_IMG), zoom);
-     	  	          cache_page_number++;
-     	  	          
-     	  	       if (cache_page_number - page < 2) {
-    	  	        	if (!queue.contains(page+1))queue.add(page+1);
-    	  	        	if (!queue.contains(page+2))queue.add(page+2);
-    	  	        	//queue.add(page-1);
-    	  	        	//queue.add(page+2);
-    	  	        }
-    			 }
-    	        	
-    	     }
-    		 else
-    		 {
-    			//PDFPage pg = page_map.get(page);
-    			int num = mPdfPage.getPageNumber();
-  	  	        int maxNum = mPdfFile.getNumPages();
-  	  	        float wi = mPdfPage.getWidth();
-  	  	        float hei = mPdfPage.getHeight();
-  	  	        RectF clip = null;
-    		    Bitmap bi = mPdfPage.getImage((int)(wi*zoom), (int)(hei*zoom), clip, true, true);
- 	  	        mGraphView.setPageBitmap(bi);
- 	  	        mGraphView.updateImage();
- 	  	        
- 	  	        
-    		 }
+     	  	        
+     	  	        
+     	  	        
+//     	  	        mPdfPage = mPdfLoaded.getPage(page, true);
+//     	  	        if (cache_page_number - page < 2) 
+//     	  	        	{
+//     	  	        	if (!queue.contains(page+1))queue.add(page+1);
+//     	  	        	if (!queue.contains(page+2))queue.add(page+2);
+//     	  	        	//queue.add(page-1);
+//     	  	        	//queue.add(page+2);
+//     	  	        	}
+//     	  	        //startcaching();
+//    			 }else
+//    			 {
+//    				 current_page_number = page;
+//      	        	 mPdfPage = mPdfLoaded.getPage(page, true);
+//      	        	 //page_map.put(page, mPdfPage);
+//    				 int num = mPdfPage.getPageNumber();
+//    	  	  	        int maxNum = mPdfLoaded.getNumPages();
+//    	  	  	        float wi = mPdfPage.getWidth();
+//    	  	  	        float hei = mPdfPage.getHeight();
+//    	  	  	        RectF clip = null;
+//    	    		    Bitmap bi = mPdfPage.getImage((int)(wi*zoom), (int)(hei*zoom), clip, true, true);
+//    	 	  	        mGraphView.setPageBitmap(bi);
+//    	 	  	        mGraphView.updateImage();
+//    	 	  	        
+//    	 	  	      ByteArrayOutputStream out = new ByteArrayOutputStream();
+//     	  	          bi.compress(Bitmap.CompressFormat.PNG, 100, out);
+//     	  	          ContentValues cv = new ContentValues();
+//     	  	          cv.put(DataHelper.KEY_IMG, out.toByteArray()); 
+//     	  	          dhlpr.insert_bitmap(cv.getAsByteArray(DataHelper.KEY_IMG), zoom);
+//     	  	          cache_page_number++;
+//     	  	          
+//     	  	       if (cache_page_number - page < 2) {
+//    	  	        	if (!queue.contains(page+1))queue.add(page+1);
+//    	  	        	if (!queue.contains(page+2))queue.add(page+2);
+//    	  	        	//queue.add(page-1);
+//    	  	        	//queue.add(page+2);
+//    	  	        }
+//    			 }
+//    	        	
+//    	     }
+//    		 else
+//    		 {
+//    			//PDFPage pg = page_map.get(page);
+//    			int num = mPdfPage.getPageNumber();
+//  	  	        int maxNum = mPdfLoaded.getNumPages();
+//  	  	        float wi = mPdfPage.getWidth();
+//  	  	        float hei = mPdfPage.getHeight();
+//  	  	        RectF clip = null;
+//    		    Bitmap bi = mPdfPage.getImage((int)(wi*zoom), (int)(hei*zoom), clip, true, true);
+// 	  	        mGraphView.setPageBitmap(bi);
+// 	  	        mGraphView.updateImage();
+// 	  	        
+// 	  	        
+//    		 }
 	        // free memory from previous page
 	      
 		} catch (Throwable e) {
 			Log.e(TAG, e.getMessage(), e);
-			mGraphView.showText("Exception: "+e.getMessage());
+			//mGraphView.showText("Exception: "+e.getMessage());
 		}
         long stopTime = System.currentTimeMillis();
-        mGraphView.pageParseMillis = middleTime-startTime;
-        mGraphView.pageRenderMillis = stopTime-middleTime;
+      
     }
     
-    private void parsePDF(Integer book_id,String password) throws PDFAuthenticationFailureException {
-        long startTime = System.currentTimeMillis();
-    	try {
-    		//byte [] arr = 
-    		String filename = "current_book.pdf";
-    		File f = new File(Environment.getExternalStorageDirectory(),filename);
-    		if(!f.exists())f.createNewFile();
-    		f.setWritable(true);
-    		FileOutputStream fos = new FileOutputStream(f);
-    		 try 
-             {
-                 
-                 byte [] arr = dhlpr.getBookContents(book_id);
-             	 if (arr == null)
+    private void loadPDF(Integer book_id,String password) throws PDFAuthenticationFailureException {
+       try {
+    	   List<Integer> pages = dhlpr.getBookPageIDs(book_id);
+    	   if (pages.size()>0)
+    	   {
+    		   Bitmap arr = dhlpr.getPage(dhlpr.getPageID(new PageDTO(pages.get(0),null)));
+    		   	 if (arr == null)
              	 {
              		ServerConnector c = new ServerConnector(dhlpr);
              		//ArrayList<Book> books = dhlpr.getAllBooks();
                 	c.serverGetBook(dhlpr.getBookExtID(book_id));
+                	pages_IDS = dhlpr.getBookPageIDs(book_id);
              	 }
-             	 
-             	 byte [] arr2 = dhlpr.getBookContents(book_id);
-                 fos.write(arr2);
-                 fos.flush();
-                
-             }finally
-             { 
-            	 fos.close();
-             }
-    		
-    		
-        	long len = f.length();
-        	if (len == 0) {
-        		mGraphView.showText("file '" + filename + "' not found");
-        	}
-        	else {
-        		mGraphView.showText("file '" + filename + "' has " + len + " bytes");
-    	    	openFile(f, password);
-        	}
-    	}
-        catch (PDFAuthenticationFailureException e) {
-        	throw e; 
-		} catch (Throwable e) {
+    		   	 mPdfLoaded = true;
+             	 //byte [] arr2 = dhlpr.getBookContents(book_id);
+         	
+    	        //openFile(book_id);
+           }
+    	  	
+    	} catch (Throwable e) {
 			e.printStackTrace();
-			mGraphView.showText("Exception: "+e.getMessage());
+			//mGraphView.showText("Exception: "+e.getMessage());
 		}
-        long stopTime = System.currentTimeMillis();
-        mGraphView.fileMillis = stopTime-startTime;
-    	//dhlpr.g
-    	//openFile(f, password);
-	}
+    }
 
     
     /**
@@ -843,148 +801,59 @@ public class PdfViewerICE2Activity extends Activity {
      * @param file the file to open
      * @throws IOException
      */
-    public void openFile(File file, String password) throws IOException {
-        // first open the file for random access
-        RandomAccessFile raf = new RandomAccessFile(file, "r");
-
-        // extract a file channel
-        FileChannel channel = raf.getChannel();
-
-        // now memory-map a byte-buffer
-        ByteBuffer bb =
-                ByteBuffer.NEW(channel.map(FileChannel.MapMode.READ_ONLY, 0, channel.size()));
-        // create a PDFFile from the data
-       // showDialog(DIALOG_LOAD);
-//        ProgressDialog progressDialog;
-//        progressDialog = new ProgressDialog(this);
-//        progressDialog.setProgressStyle(ProgressDialog.STYLE_HORIZONTAL);
-
-        if (password == null)
-        {
-        	mPdfFile = new PDFFile(new NetByteBuffer(bb));
-//        	 ByteArrayOutputStream bos = new ByteArrayOutputStream(); 
-//        	 try { 
-//        	      ObjectOutput out = new ObjectOutputStream(bos); 
-//        	      out.writeObject(mPdfFile); 
-//        	      out.close(); 
-//        	 
-//        	      // Get the bytes of the serialized object 
-//        	      byte[] buf = bos.toByteArray(); 
-//        	 
-//        	    } catch(IOException ioe) { 
-//        	      Log.e("serializeObject", "error", ioe); 
-//        	    }
-        	// mGraphView.setFileLoaded();
-        	 
-        	
-        }else
-        {
-        	mPdfFile = new PDFFile(new NetByteBuffer(bb), new PDFPassword(password));
-        }
-        //dismissDialog(DIALOG_LOAD);
-        //progressDialog.dismiss();
-        /************************************************/
-        startcaching();
-        /************************************************/
-        mGraphView.showText("Anzahl Seiten:" + mPdfFile.getNumPages());
-    }
+//    public void openFile(int id_book) throws IOException {
+//      
+//        startcaching(id_book);
+//        /************************************************/
+//    }
     
     private ConcurrentLinkedQueue<Integer> queue = new ConcurrentLinkedQueue<Integer>();
-    private void startcaching() {
-		if(bckgrCacheThread == null)
-    	{
-    		bckgrCacheThread = new Thread(new Runnable() {
-     			@Override
-     			public void run() {
-     				try {
-     					while (!Thread.currentThread().isInterrupted())
-     					{
-     						 if (mPdfFile != null) 
-     						 {
-          			        	if (!queue.isEmpty())
-          			        	{
-          			        		for(int i = 0;i < queue.size();i++)
-          			        		{
-          			        			Integer page = queue.poll();
-          			        			PDFPage mPdfPage = mPdfFile.getPage(page, true);
-          			        			//page_map.put(page,mPdfPage);
-              			        		float wi = mPdfPage.getWidth();
-              		    	  	        float hei = mPdfPage.getHeight();
-              		    	  	        RectF clip = null;
-              		    	  	        Bitmap bi = mPdfPage.getImage((int)(wi), (int)(hei), clip, true, true);
-              		    	  	        ByteArrayOutputStream out = new ByteArrayOutputStream();
-              		    	  	        bi.compress(Bitmap.CompressFormat.PNG, 100, out);
-              		    	  	        ContentValues cv = new ContentValues();
-              		    	  	        cv.put(DataHelper.KEY_IMG, out.toByteArray()); 
-              		    	  	        dhlpr.insert_bitmap(cv.getAsByteArray(DataHelper.KEY_IMG),mZoom);
-              		    	  	        ++cache_page_number;  	  	        
-          			        		}
-          			        	}
-           			        }
-     						 Thread.currentThread().sleep(1000);
-      					}
-     					
-     				} catch (Exception e) {
-     					Log.e(TAG, e.getMessage(), e);
-     				}
-     				//bckgrCacheThread = null;
-     			}
-     		});
-    	}
-    	
-    	if (!bckgrCacheThread.isAlive())bckgrCacheThread.start();
-    	
-    	
-		
-	}
-	private byte[] readBytes(File srcFile) throws IOException {
-    	long fileLength = srcFile.length();
-    	int len = (int)fileLength;
-    	byte[] result = new byte[len];
-    	FileInputStream fis = new FileInputStream(srcFile);
-    	int pos = 0;
-		int cnt = fis.read(result, pos, len-pos);
-    	while (cnt > 0) {
-    		pos += cnt;
-    		cnt = fis.read(result, pos, len-pos);
-    	}
-		return result;
-	}
+//    private void startcaching(int id_book) {
+//		if(bckgrCacheThread == null)
+//    	{
+//    		bckgrCacheThread = new Thread(new Runnable() {
+//     			@Override
+//     			public void run() {
+//     				try {
+//     					while (!Thread.currentThread().isInterrupted())
+//     					{
+//     							if (!queue.isEmpty())
+//          			        	{
+//          			        		for(int i = 0;i < queue.size();i++)
+//          			        		{
+//          			        			Integer page = queue.poll();
+//          			        			PDFPage mPdfPage = mPdfLoaded.getPage(page, true);
+//          			        			//page_map.put(page,mPdfPage);
+//              			        		float wi = mPdfPage.getWidth();
+//              		    	  	        float hei = mPdfPage.getHeight();
+//              		    	  	        RectF clip = null;
+//              		    	  	        Bitmap bi = mPdfPage.getImage((int)(wi), (int)(hei), clip, true, true);
+//              		    	  	        ByteArrayOutputStream out = new ByteArrayOutputStream();
+//              		    	  	        bi.compress(Bitmap.CompressFormat.PNG, 100, out);
+//              		    	  	        ContentValues cv = new ContentValues();
+//              		    	  	        cv.put(DataHelper.KEY_IMG, out.toByteArray()); 
+//              		    	  	        dhlpr.insert_bitmap(cv.getAsByteArray(DataHelper.KEY_IMG),mZoom);
+//              		    	  	        ++cache_page_number;  	  	        
+//          			        		}
+//          			        	}
+//   
+//     						 Thread.currentThread().sleep(1000);
+//      					}
+//     					
+//     				} catch (Exception e) {
+//     					Log.e(TAG, e.getMessage(), e);
+//     				}
+//     				//bckgrCacheThread = null;
+//     			}
+//     		});
+//    	}
+//    	
+//    	if (!bckgrCacheThread.isAlive())bckgrCacheThread.start();
+//    	
+//    	
+//		
+//	}
 
-	private String storeUriContentToFile(Uri uri) {
-    	String result = null;
-    	try {
-	    	if (mTmpFile == null) {
-				File root = Environment.getExternalStorageDirectory();
-				if (root == null)
-					throw new Exception("external storage dir not found");
-				mTmpFile = new File(root,"AndroidPdfViewer/AndroidPdfViewer_temp.pdf");
-				mTmpFile.getParentFile().mkdirs();
-	    		mTmpFile.delete();
-	    	}
-	    	else {
-	    		mTmpFile.delete();
-	    	}
-	    	InputStream is = getContentResolver().openInputStream(uri);
-	    	OutputStream os = new FileOutputStream(mTmpFile);
-	    	byte[] buf = new byte[1024];
-	    	int cnt = is.read(buf);
-	    	while (cnt > 0) {
-	    		os.write(buf, 0, cnt);
-		    	cnt = is.read(buf);
-	    	}
-	    	os.close();
-	    	is.close();
-	    	result = mTmpFile.getCanonicalPath();
-	    	mTmpFile.deleteOnExit();
-    	}
-    	catch (Exception e) {
-    		Log.e(TAG, e.getMessage(), e);
-		}
-		return result;
-	}
-
-    
     @Override
     protected void onDestroy() {
     	super.onDestroy();

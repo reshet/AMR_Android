@@ -788,7 +788,7 @@ public class PdfViewerICEActivity extends Activity {
     		String filename = "current_book.pdf";
     		File f = new File(Environment.getExternalStorageDirectory(),filename);
     		if(!f.exists())f.createNewFile();
-    		f.setWritable(true);
+    		//f.setWritable(true);
     		FileOutputStream fos = new FileOutputStream(f);
     		 try 
              {
