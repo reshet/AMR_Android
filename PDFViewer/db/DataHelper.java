@@ -2,15 +2,19 @@ package db;
 
 
 import java.io.ByteArrayInputStream;
+import com.mplatforma.amr.server.*;
+
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Date;
+import java.util.List;
 
-import com.mplatforma.amr.R;
 
-import android.content.ContentValues;
+
 import android.content.Context;
-//import android.database.Cursor;
 import android.database.Cursor;
+import android.database.Cursor;
+import android.database.SQLException;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
 import android.database.sqlite.SQLiteStatement;
@@ -18,85 +22,156 @@ import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.util.Log;
  
-//import java.util.ArrayList;
-//import java.util.List;
- 
 public class DataHelper {
  
    private static final String DATABASE_NAME = "AMR_DB.db";
-   private static final int DATABASE_VERSION = 1;
+   private static final int DATABASE_VERSION = 7;
    
    private static final String BITMAP_TABLE_NAME = "bitmaps";
    private static final String BOOK_TABLE_NAME = "books";
    private static final String BOOKMARK_TABLE_NAME = "bookmarks";
+   private static final String PAGE_TABLE_NAME = "pages";
+   private static final String ATTACHMENT_TABLE_NAME = "attachments";
    
-   public static final String BITMAP_COLUMN_ID = "_id";
+   public static final String BITMAP_COLUMN_ID = "bitmap_id";
    public static final String BITMAP_COLUMN_BITMAP = "bitmap";
    public static final String BITMAP_COLUMN_ZOOM = "zoom";
    
-   public static final String BOOK_COLUMN_ID = "_id";
+   public static final String BOOK_COLUMN_ID = "book_id";
+   public static final String BOOK_COLUMN_EXTERNAL_ID = "book_external_id";
    public static final String BOOK_COLUMN_COVER = "cover";
    public static final String BOOK_COLUMN_TITLE = "title";
+   public static final String BOOK_COLUMN_PAGES = "number_of_pages";
+   public static final String BOOK_COLUMN_BOOK = "book";
    
-   public static final String BOOKMARK_COLUMN_ID = "_id";
-   public static final String BOOKMARK_COLUMN_BOOKID = "_id_book";
+   public static final String BOOKMARK_COLUMN_ID = "bookmark_id";
+   public static final String BOOKMARK_COLUMN_BOOKID = "book_id";
    public static final String BOOKMARK_COLUMN_PAGE = "page_number";
    public static final String BOOKMARK_COLUMN_DESC = "description";
-   public static final String BOOKMARK_COLUMN_DATE = "date_";
+   public static final String BOOKMARK_COLUMN_DATE = "date";
    
+   public static final String PAGE_COLUMN_ID = "page_id";
+   public static final String PAGE_COLUMN_EXTERNAL_ID = "page_external_id";
+   public static final String PAGE_COLUMN_BOOKID = "book_id";
+   public static final String PAGE_COLUMN_NUMB = "page_number";
+   public static final String PAGE_COLUMN_PNG = "page_png";
+   
+   private static final String ATTACHMENT_COLUMN_ID = "attachment_id";
+   private static final String ATTACHMENT_COLUMN_EXTERNAL_ID = "attachment_external_id";
+   private static final String ATTACHMENT_COLUMN_PAGEID = "page_id";
+   private static final String ATTACHMENT_COLUMN_NAME = "name";
+   private static final String ATTACHMENT_COLUMN_ITSELF = "attachment";
+  
+    
    public static final String KEY_IMG = "image";
    
    private static final String DATABASE_CREATE = "create table " + BITMAP_TABLE_NAME 
 		   + "("+ BITMAP_COLUMN_ID +" integer primary key autoincrement, " 
-		   + BITMAP_COLUMN_BITMAP + " blob not null, "
+		   + BITMAP_COLUMN_BITMAP + " blob, "
 		   + BITMAP_COLUMN_ZOOM + " double not null);";
    private static final String DATABASE_CREATE2 = 
 		    "create table " + BOOK_TABLE_NAME 
 		   + "(" + BOOK_COLUMN_ID + " integer primary key autoincrement, "
-		   //+ BOOK_COLUMN_COVER + "integer not null,"
-		   + BOOK_COLUMN_TITLE + " text not null);";
+		   + BOOK_COLUMN_EXTERNAL_ID + " integer not null, "
+		   + BOOK_COLUMN_COVER + " blob,"
+		   + BOOK_COLUMN_TITLE + " text not null, "
+		   + BOOK_COLUMN_PAGES + " ineger not null,"
+		   + BOOK_COLUMN_BOOK + " blob );";
    private static final String DATABASE_CREATE3 = 
 		    "create table " + BOOKMARK_TABLE_NAME 
 		   + "(" + BOOKMARK_COLUMN_ID + " integer primary key autoincrement, "
 		   + BOOKMARK_COLUMN_BOOKID + " integer not null, "
 		   + BOOKMARK_COLUMN_PAGE + " integer not null, "
 		   + BOOKMARK_COLUMN_DESC + " text not null, "
-		   + BOOKMARK_COLUMN_DATE + " text not null);";
+		   + BOOKMARK_COLUMN_DATE + " text not null );";
+   private static final String DATABASE_CREATE4 = 
+		    "create table " + PAGE_TABLE_NAME 
+		   + "(" + PAGE_COLUMN_ID + " integer primary key autoincrement, "
+		   + PAGE_COLUMN_EXTERNAL_ID + " integer not null, "
+		   + PAGE_COLUMN_BOOKID + " integer not null, "
+		   + PAGE_COLUMN_NUMB + " integer not null, "
+		   + PAGE_COLUMN_PNG + " blob );";
+   private static final String DATABASE_CREATE5 = 
+		    "create table " + ATTACHMENT_TABLE_NAME
+		   + "(" + ATTACHMENT_COLUMN_ID + " integer primary key autoincrement, "
+		   + ATTACHMENT_COLUMN_EXTERNAL_ID + " integer not null, "
+		   + ATTACHMENT_COLUMN_PAGEID + " integer not null, "
+		   + ATTACHMENT_COLUMN_NAME + " string not null, "
+		   //+ ATTACHMENT_COLUMN_LINK + "string not null, "
+		   + ATTACHMENT_COLUMN_ITSELF + " blob );";
    			
-   private Context context;
+   private final Context context;
    private OpenHelper OpenHelper;
    private SQLiteDatabase db; 
-   private SQLiteStatement ins_bitmap_smt,ins_bookmark_stmt, ins_book_stmt;
+   private SQLiteStatement ins_bitmap_smt, ins_bookmark_stmt, ins_book_stmt,
+   							ins_attachment_smt, ins_page_smt;
    
+   private static final String UPDATE_ATTACHMENT = "update "
+		   + ATTACHMENT_TABLE_NAME + " set " 
+		   + ATTACHMENT_COLUMN_ITSELF + " = ? "
+		   + "where " + ATTACHMENT_COLUMN_ID + " = ?";
+   
+   private static final String UPDATE_PAGE = "update "
+		   + PAGE_TABLE_NAME + " set " 
+		   + PAGE_COLUMN_PNG + " = ? "
+		   + "where " + PAGE_COLUMN_ID + " = ?";
+   
+   private static final String UPDATE_COVER = "update "
+		   + BOOK_TABLE_NAME + " set " 
+		   + BOOK_COLUMN_COVER + " = ? "
+		   + "where " + BOOK_COLUMN_EXTERNAL_ID + " = ?";
+   
+   private static final String UPDATE_BOOK = "update "
+		   + BOOK_TABLE_NAME + " set " 
+		   + BOOK_COLUMN_BOOK + " = ? "
+		   + "where " + BOOK_COLUMN_EXTERNAL_ID + " = ?";
+		   
    private static final String INSERT_BITMAP = "insert into "
-		   + BITMAP_TABLE_NAME + "("+ BITMAP_COLUMN_ID + "," + BITMAP_COLUMN_BITMAP + "," 
-		   + BITMAP_COLUMN_ZOOM + ") values (NULL, ?, ?)";
+		   + BITMAP_TABLE_NAME + " ( "+ BITMAP_COLUMN_ID 
+		   + " , " + BITMAP_COLUMN_BITMAP 
+		   + " , " + BITMAP_COLUMN_ZOOM + " ) values (NULL, ?, ?)";
    
    private static final String INSERT_BOOKMARK = "insert into " 
-		   + BOOKMARK_TABLE_NAME + " ("+ BOOKMARK_COLUMN_ID +","+ BOOKMARK_COLUMN_BOOKID
-		   + "," + BOOKMARK_COLUMN_PAGE + "," + BOOKMARK_COLUMN_DESC + "," 
-		   + BOOKMARK_COLUMN_DATE + ") values (NULL, ?, ?, ?, ?)";
+		   + BOOKMARK_TABLE_NAME + " ( " + BOOKMARK_COLUMN_ID 
+		   + " , " + BOOKMARK_COLUMN_BOOKID
+		   + " , " + BOOKMARK_COLUMN_PAGE 
+		   + " , " + BOOKMARK_COLUMN_DESC 
+		   + " , " + BOOKMARK_COLUMN_DATE + " ) values (NULL, ?, ?, ?, ?)";
    
    public static final String INSERT_BOOK = "insert into " 
-		   + BOOK_TABLE_NAME + "(" + BOOK_COLUMN_ID 
-		   //+ "," + BOOK_COLUMN_COVER 
-		   //+ "," + BOOK_COLUMN_TITLE + ") values (NULL, ?, ?)";
-   		   + "," + BOOK_COLUMN_TITLE + ") values (NULL, ?)";
+		   + BOOK_TABLE_NAME + " ( " + BOOK_COLUMN_ID 
+		   + " , " + BOOK_COLUMN_EXTERNAL_ID 
+		   + " , " + BOOK_COLUMN_COVER 
+		   + " , " + BOOK_COLUMN_TITLE 
+		   + " , " + BOOK_COLUMN_PAGES 
+		   + " , " + BOOK_COLUMN_BOOK +" ) values (NULL, ?, NULL, ?, ?, NULL)";
+   
+   public static final String INSERT_PAGE = "insert into " 
+		   + PAGE_TABLE_NAME + " ( " + PAGE_COLUMN_ID
+		   + " , " + PAGE_COLUMN_EXTERNAL_ID 
+		   + " , " + PAGE_COLUMN_BOOKID 
+		   + " , " + PAGE_COLUMN_NUMB
+		   + " , " + PAGE_COLUMN_PNG +" ) values (NULL, ?, ?, ?, NULL)";
+   
+   public static final String INSERT_ATTACHMENT = "insert into " 
+		   + ATTACHMENT_TABLE_NAME + " ( " + ATTACHMENT_COLUMN_ID
+		   + " , " + ATTACHMENT_COLUMN_PAGEID 
+		   + " , " + ATTACHMENT_COLUMN_EXTERNAL_ID
+		   + " , " + ATTACHMENT_COLUMN_NAME
+		   + " , " + ATTACHMENT_COLUMN_ITSELF +" ) values (NULL, ?, ?, ?, NULL)";
  
    public DataHelper(Context context) {
 	   this.context = context;
        OpenHelper openHelper = new OpenHelper(this.context);
        this.db = openHelper.getWritableDatabase();
        int version = db.getVersion();
-     //  openHelper.onUpgrade(db, version, version+1);
        this.ins_bitmap_smt = this.db.compileStatement(INSERT_BITMAP);
        this.ins_book_stmt = this.db.compileStatement(INSERT_BOOK);
        this.ins_bookmark_stmt = this.db.compileStatement(INSERT_BOOKMARK);
+       this.ins_page_smt = this.db.compileStatement(INSERT_PAGE);
+       this.ins_attachment_smt = this.db.compileStatement(INSERT_ATTACHMENT);
    }
-   /*public void open() {
-	   OpenHelper = new OpenHelper(context);
-	   db = OpenHelper.getWritableDatabase();
-   }*/
+   
    public long insert_bookmark(int id_book, int page, String desc) {
 	   this.ins_bookmark_stmt.bindLong(1,  id_book);
        this.ins_bookmark_stmt.bindLong(2, page);
@@ -111,17 +186,79 @@ public class DataHelper {
 	   this.ins_bitmap_smt.bindDouble(2, zoom);
 	   return this.ins_bitmap_smt.executeInsert();
    }
-   
-   //public void insert_book(int img, String txt){
-   public long insert_book(String txt){
-	   this.ins_book_stmt.bindString(1, txt);
-	   return this.ins_book_stmt.executeInsert();
-	   //ContentValues cv = new ContentValues();
-	   //cv.put(BOOK_COLUMN_TITLE, txt);
-	   //cv.put(BOOK_COLUMN_COVER, img);
-	   //db.insert(BOOK_TABLE_NAME, null, cv);	   
+  // public long insert_book(BookDTO book, byte[] bMapArray){
+   public long insert_book(BookDTO book){
+	   this.ins_book_stmt.bindLong(1, book.getId());
+	   this.ins_book_stmt.bindString(2, book.getName());
+	   //this.ins_book_stmt.bindBlob(3, bMapArray);
+	   //this.ins_book_stmt.bindBlob(3, null);
+	   this.ins_book_stmt.bindLong(3, book.getPageCollection().size());
+	  // this.ins_book_stmt.bindBlob(5, null);
+	   long out = this.ins_book_stmt.executeInsert();	   
+	   insert_page(book);
+	   return out;
    }
-
+   public long insert_page(BookDTO book){
+	   int i = 0;
+	   int book_id =this.getBookID(book);
+	   long out = 0;
+	   for (PageDTO page : book.getPageCollection()) {
+		   this.ins_page_smt.bindLong(1, page.getId());
+		   this.ins_page_smt.bindLong(2, book_id);
+		   this.ins_page_smt.bindLong(3, i+1);
+		   //this.ins_page_smt.bindBlob(3, null);
+		   out = this.ins_page_smt.executeInsert();
+		   i++;
+	   }	   
+	   return out;
+   }
+   public long insert_attachment(BookDTO book){
+	   for (PageDTO page : book.getPageCollection()) {
+		   int page_id = this.getPageID(page);
+		   for (AttachmentDTO attachment : page.getAttachmentCollection()){
+			   this.ins_attachment_smt.bindLong(1, page_id);
+			   this.ins_attachment_smt.bindLong(2, attachment.getId());
+			   this.ins_attachment_smt.bindString(3, attachment.getName());
+			 //  this.ins_attachment_smt.bindBlob(4, null);
+			   this.ins_attachment_smt.executeInsert();
+		   }
+	   }	   
+	   return 0;
+   }
+   public void update_attachment(int id, byte[] bMapArray){
+	   Object[] bindArgs = new Object[] {id, bMapArray};
+	   try{
+		   OpenHelper.getWritableDatabase().execSQL(UPDATE_ATTACHMENT, bindArgs);
+	   }catch(SQLException e){
+		   Log.e("Error update", e.toString());
+	   }
+   }
+   public void update_cover(int id, byte[] bMapArray){
+	   Object[] bindArgs = new Object[] {id, bMapArray};
+	   try{
+		   OpenHelper.getWritableDatabase().execSQL(UPDATE_COVER, bindArgs);
+	   }catch(SQLException e){
+		   Log.e("Error update", e.toString());
+	   }
+   }
+   public void update_page(int id, byte[] bMapArray){
+	   Object[] bindArgs = new Object[] {bMapArray,id};
+	   try{
+		   this.db.execSQL(UPDATE_PAGE, bindArgs);
+	   }catch(SQLException e){
+		   Log.e("Error update", e.toString());
+	   }
+   }
+   public void update_book(int id, byte[] bMapArray){
+	   Object[] bindArgs = new Object[] {bMapArray,id};
+	   try{
+		   this.db.execSQL(UPDATE_BOOK, bindArgs);
+		   //OpenHelper.getWritableDatabase().execSQL(UPDATE_BOOK, bindArgs);
+	   }catch(SQLException e){
+		   Log.e("Error update", e.toString());
+	   }
+   }
+   
    public Bitmap get(int page){
 	  
 	   Bitmap bi = null;	   
@@ -142,6 +279,104 @@ public class DataHelper {
 	return bi;	   
    }
    
+   public Bitmap getPage(int page_id){
+		  
+	   Bitmap bi = null;	   
+	   Cursor c = this.db.rawQuery("SELECT "+PAGE_COLUMN_PNG+" FROM " +PAGE_TABLE_NAME + " WHERE " + PAGE_COLUMN_ID + " = "  + page_id + " ; ", null);
+	   if (!c.isAfterLast()){
+		   c.moveToFirst();
+		   ByteArrayInputStream inputStream = new ByteArrayInputStream(c.getBlob(0));
+		   bi = BitmapFactory.decodeStream(inputStream);   
+	   }
+	   if (c != null && !c.isClosed()) c.close();
+//	   if(c.getCount() > 0){
+//		   int count = 0;
+//		   while (count != page)
+//		   {
+//			   c.moveToNext();
+//			   ++count;
+//		   }
+//		   ByteArrayInputStream inputStream = new ByteArrayInputStream(c.getBlob(1));
+//		   bi = BitmapFactory.decodeStream(inputStream);   
+//		   if (c != null && !c.isClosed())
+//		         c.close();
+//	  	  
+//	   }	   
+	return bi;	   
+   }
+   public int getBookID(BookDTO b){
+	   int id = 0;
+	   Cursor c = this.db.rawQuery(" SELECT " + BOOK_COLUMN_ID + " FROM " + BOOK_TABLE_NAME + 
+			   " WHERE " + BOOK_COLUMN_EXTERNAL_ID + " = "  + b.getId() + " ; ", null);
+	   if (!c.isAfterLast()){
+		   c.moveToFirst();
+		   id = c.getInt(0);
+	   }
+	   c.close();
+	   return id;
+   }
+   
+   public int getBookExtID(int id_local){
+	   int id = 0;
+	   Cursor c = this.db.rawQuery(" SELECT " + BOOK_COLUMN_EXTERNAL_ID + " FROM " + BOOK_TABLE_NAME + 
+			   " WHERE " + BOOK_COLUMN_ID + " = "  +id_local + " ; ", null);
+	   c.moveToFirst();
+	   if (!c.isAfterLast()){
+		   //c.moveToFirst();
+		   id = c.getInt(0);
+	   }
+	   c.close();
+	   return id;
+   }
+   
+   public byte[] getBookContents(int id){
+	   byte [] arr = null;
+	   Cursor c = this.db.rawQuery(" SELECT " + BOOK_COLUMN_BOOK + " FROM " + BOOK_TABLE_NAME + 
+			   " WHERE " + BOOK_COLUMN_ID + " = "  + id + " ; ", null);
+	   c.moveToFirst();
+	   if (!c.isAfterLast()){
+		   //c.moveToFirst();
+		   arr = c.getBlob(0);
+	   }
+	   c.close();
+	   return arr;
+   }
+   public byte[] getAttacmentContents(int id){
+	   byte [] arr = null;
+	   Cursor c = this.db.rawQuery(" SELECT " + ATTACHMENT_COLUMN_ITSELF + " FROM " + ATTACHMENT_COLUMN_NAME + 
+			   " WHERE " + ATTACHMENT_COLUMN_ID + " = "  + id + " ; ", null);
+	   if (!c.isAfterLast()){
+		   c.moveToFirst();
+		   arr = c.getBlob(0);
+	   }
+	   c.close();
+	   return arr;
+   }
+   public int getPageID(PageDTO page){
+	   int id = 0;
+	   Cursor c = this.db.rawQuery(" SELECT " + PAGE_COLUMN_ID + " FROM " + PAGE_TABLE_NAME + 
+			   " WHERE " + PAGE_COLUMN_EXTERNAL_ID + " = "  + page.getId() + " ; ", null);
+	   if (!c.isAfterLast()){
+		   c.moveToFirst();
+		   id = c.getInt(0);
+	   }
+	   c.close();
+	   return id;
+   }
+   public List<Integer> getBookPageIDs(int book_id){
+	   List<Integer> lst = new ArrayList<Integer>();
+	   int id = 0;
+	   Cursor c = this.db.rawQuery(" SELECT " + PAGE_COLUMN_ID + " FROM " + PAGE_TABLE_NAME + 
+			   " WHERE " + PAGE_COLUMN_BOOKID + " = "  + book_id + " ; ", null);
+	   c.moveToFirst();
+	   while (!c.isAfterLast()){
+		   id = c.getInt(0);
+		   c.moveToNext();	   
+		   lst.add(id);
+	   }
+	   c.close();
+	   return lst;
+   }
    public ArrayList<Bookmark> getAllBookmarks(){
 	   ArrayList<Bookmark> arr = new ArrayList<Bookmark>();
 	   Cursor c = this.db.rawQuery("SELECT * FROM " + BOOKMARK_TABLE_NAME + ";", null);
@@ -156,7 +391,7 @@ public class DataHelper {
    }
    public ArrayList<Bookmark> getBookmarks(Book b){
 	   ArrayList<Bookmark> arr = new ArrayList<Bookmark>();
-	   Cursor c = this.db.rawQuery("SELECT * FROM " + BOOKMARK_TABLE_NAME + " WHERE _id_book = " 
+	   Cursor c = this.db.rawQuery("SELECT * FROM " + BOOKMARK_TABLE_NAME + " WHERE "+BOOK_COLUMN_ID+" = " 
 			   + b.getId()+" ;", null);
 	   c.moveToFirst();
 	   while(!c.isAfterLast()){
@@ -169,11 +404,11 @@ public class DataHelper {
    }
    public Book getBook(Bookmark b){
 	   Book book = null;
-	   Cursor c = this.db.rawQuery(" SELECT * FROM " + BOOK_TABLE_NAME + " WHERE _id = "
+	   Cursor c = this.db.rawQuery(" SELECT * FROM " + BOOK_TABLE_NAME + " WHERE "+BOOK_COLUMN_ID+" = "
 			   + b.getId_book() + " ; ", null);
 	   if (!c.isAfterLast()){
 		   c.moveToFirst();
-		   book = new Book(c.getInt(0), c.getString(1));
+		   book = new Book(c.getInt(0), c.getInt(1), c.getBlob(2), c.getString(3), c.getInt(4), c.getBlob(5));
 	   }
 	   c.close();
 	   return book;
@@ -184,7 +419,7 @@ public class DataHelper {
 	   Cursor c = this.db.rawQuery("SELECT * FROM " + BOOK_TABLE_NAME + ";", null);
 	   c.moveToFirst();
 	   while(!c.isAfterLast()){
-		   Book b = new Book(c.getInt(0), c.getString(1));
+		   Book b = new Book(c.getInt(0), c.getInt(1), c.getBlob(2), c.getString(3), c.getInt(4), c.getBlob(5));
 		   books.add(b);
 		   c.moveToNext();	   
 	   }
@@ -216,6 +451,8 @@ public class DataHelper {
       this.db.delete(BITMAP_TABLE_NAME, null, null);
       this.db.delete(BOOK_TABLE_NAME, null, null);
       this.db.delete(BOOKMARK_TABLE_NAME, null, null);
+      this.db.delete(PAGE_TABLE_NAME, null, null);
+      this.db.delete(ATTACHMENT_TABLE_NAME, null, null);
    }
  
   /* public List<byte[]> selectAll() {
@@ -235,17 +472,20 @@ public class DataHelper {
    */
  
    private static class OpenHelper extends SQLiteOpenHelper {
- 
+	   private final Context context;
       OpenHelper(Context context) {
          super(context, DATABASE_NAME, null, DATABASE_VERSION);
+         this.context = context;
       }
  
       @Override
       public void onCreate(SQLiteDatabase db) {
     	  db.execSQL(DATABASE_CREATE);
     	  db.execSQL(DATABASE_CREATE2);
-    	  db.execSQL(DATABASE_CREATE3);    	  
-    	  int d = 2;
+    	  db.execSQL(DATABASE_CREATE3); 
+    	  db.execSQL(DATABASE_CREATE4);
+    	  db.execSQL(DATABASE_CREATE5); 
+    	  //int d = 2;
       }
  
       @Override
@@ -254,6 +494,8 @@ public class DataHelper {
          db.execSQL("DROP TABLE IF EXISTS " + BITMAP_TABLE_NAME);
          db.execSQL("DROP TABLE IF EXISTS " + BOOK_TABLE_NAME);
          db.execSQL("DROP TABLE IF EXISTS " + BOOKMARK_TABLE_NAME);
+         db.execSQL("DROP TABLE IF EXISTS " + PAGE_TABLE_NAME);
+         db.execSQL("DROP TABLE IF EXISTS " + ATTACHMENT_TABLE_NAME);
          onCreate(db);
       }
    }

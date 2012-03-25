@@ -12,6 +12,7 @@ import java.io.OutputStream;
 import java.io.RandomAccessFile;
 import java.nio.channels.FileChannel;
 import java.text.NumberFormat;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.ConcurrentLinkedQueue;
@@ -53,6 +54,7 @@ import android.widget.ProgressBar;
 import android.widget.TextView;
 
 import com.mplatforma.amr.R;
+import com.mplatforma.amr.server.ServerConnector;
 import com.sun.pdfview.PDFFile;
 import com.sun.pdfview.PDFImage;
 import com.sun.pdfview.PDFPage;
@@ -61,6 +63,7 @@ import com.sun.pdfview.decrypt.PDFAuthenticationFailureException;
 import com.sun.pdfview.decrypt.PDFPassword;
 import com.sun.pdfview.font.PDFFont;
 
+import db.Book;
 import db.DataHelper;
 
 
@@ -90,7 +93,7 @@ public class PdfViewerICEActivity extends Activity {
 	
 	private GraphView mOldGraphView;
 	private GraphView mGraphView;
-	private String pdffilename;
+	private Integer pdf_id;
 	private PDFFile mPdfFile;
 	private int mPage;
 	private float mZoom;
@@ -128,7 +131,7 @@ public class PdfViewerICEActivity extends Activity {
 			mPdfPage = inst.mPdfPage;
 			mTmpFile = inst.mTmpFile;
 			mZoom = inst.mZoom;
-			pdffilename = inst.pdffilename;
+			pdf_id = inst.pdf_id;
 			backgroundThread = inst.backgroundThread; 
 			// mGraphView.invalidate();
 		}	
@@ -141,7 +144,7 @@ public class PdfViewerICEActivity extends Activity {
         super.onCreate(savedInstanceState);
 
         dhlpr = new DataHelper(this);
-        this.dhlpr.deleteAll();
+        //this.dhlpr.deleteAll();
         uiHandler = new Handler();
         restoreInstance();
         if (mOldGraphView != null) {
@@ -176,15 +179,15 @@ public class PdfViewerICEActivity extends Activity {
 		    STARTPAGE = toPage;    
 	        if (intent != null) {
 	        	if ("android.intent.action.VIEW".equals(intent.getAction())) {
-        			pdffilename = storeUriContentToFile(intent.getData());
+        			//pdf_id = storeUriContentToFile(intent.getData());
 	        	}
 	        	else {
-	                pdffilename = getIntent().getStringExtra(PdfFileSelectActivity.EXTRA_PDFFILENAME);
+	                pdf_id = getIntent().getIntExtra(PdfFileSelectActivity.EXTRA_PDF_ID,0);
 	        	}
 	        }
 	        
-	        if (pdffilename == null)
-	        	pdffilename = "no file selected";
+	        if (pdf_id == 0)
+	        	//pdffilename = "no file selected";
 
 			mPage = STARTPAGE;
 			mZoom = STARTZOOM;
@@ -196,32 +199,32 @@ public class PdfViewerICEActivity extends Activity {
     	    
 
 	private void setContent(String password) {
-//        try { 
-//        //	showDialog(DIALOG_LOAD);
-//    		//parsePDF(pdffilename);
-//	        startRenderThread(mPage, mZoom);
-//	        setContentView(mGraphView);
-//	        //dismissDialog(DIALOG_LOAD);
-//    	}
-//        catch (PDFAuthenticationFailureException e) {
-//        	setContentView(R.layout.pdf_file_password);
-//           	final EditText etPW= (EditText) findViewById(R.id.etPassword);
-//           	Button btOK= (Button) findViewById(R.id.btOK);
-//        	Button btExit = (Button) findViewById(R.id.btExit);
-//            btOK.setOnClickListener(new OnClickListener() {
-//				@Override
-//				public void onClick(View v) {
-//					String pw = etPW.getText().toString();
-//		        	setContent(pw);
-//				}
-//			});
-//            btExit.setOnClickListener(new OnClickListener() {
-//				@Override
-//				public void onClick(View v) {
-//					finish();
-//				}
-//			});
-//        }
+        try { 
+        //	showDialog(DIALOG_LOAD);
+    		parsePDF(pdf_id,password);
+	        startRenderThread(mPage, mZoom);
+	        setContentView(mGraphView);
+	        //dismissDialog(DIALOG_LOAD);
+    	}
+        catch (PDFAuthenticationFailureException e) {
+        	setContentView(R.layout.pdf_file_password);
+           	final EditText etPW= (EditText) findViewById(R.id.etPassword);
+           	Button btOK= (Button) findViewById(R.id.btOK);
+        	Button btExit = (Button) findViewById(R.id.btExit);
+            btOK.setOnClickListener(new OnClickListener() {
+				@Override
+				public void onClick(View v) {
+					String pw = etPW.getText().toString();
+		        	setContent(pw);
+				}
+			});
+            btExit.setOnClickListener(new OnClickListener() {
+				@Override
+				public void onClick(View v) {
+					finish();
+				}
+			});
+        }
 	}
 	private synchronized void startRenderThread(final int page, final float zoom) {
 		if (backgroundThread != null)
@@ -690,7 +693,7 @@ public class PdfViewerICEActivity extends Activity {
     		 if((current_page_number == -1 || current_page_number!=page))
     	     {
     			 
-    			 if ((cache_page_number >= page))
+    			 if ((cache_page_number > page))
     			 {
     				current_page_number = page;
      	        	//mGraphView.setPageBitmap(null);
@@ -778,27 +781,53 @@ public class PdfViewerICEActivity extends Activity {
         mGraphView.pageRenderMillis = stopTime-middleTime;
     }
     
-    private void parsePDF(Integer book_id) throws PDFAuthenticationFailureException {
-//        long startTime = System.currentTimeMillis();
-//    	try {
-//        	File f = new File(filename);
-//        	long len = f.length();
-//        	if (len == 0) {
-//        		mGraphView.showText("file '" + filename + "' not found");
-//        	}
-//        	else {
-//        		mGraphView.showText("file '" + filename + "' has " + len + " bytes");
-//    	    	openFile(f, password);
-//        	}
-//    	}
-//        catch (PDFAuthenticationFailureException e) {
-//        	throw e; 
-//		} catch (Throwable e) {
-//			e.printStackTrace();
-//			mGraphView.showText("Exception: "+e.getMessage());
-//		}
-//        long stopTime = System.currentTimeMillis();
-//        mGraphView.fileMillis = stopTime-startTime;
+    private void parsePDF(Integer book_id,String password) throws PDFAuthenticationFailureException {
+        long startTime = System.currentTimeMillis();
+    	try {
+    		//byte [] arr = 
+    		String filename = "current_book.pdf";
+    		File f = new File(Environment.getExternalStorageDirectory(),filename);
+    		if(!f.exists())f.createNewFile();
+    		f.setWritable(true);
+    		FileOutputStream fos = new FileOutputStream(f);
+    		 try 
+             {
+                 
+                 byte [] arr = dhlpr.getBookContents(book_id);
+             	 if (arr == null)
+             	 {
+             		ServerConnector c = new ServerConnector(dhlpr);
+             		//ArrayList<Book> books = dhlpr.getAllBooks();
+                	c.serverGetBook(dhlpr.getBookExtID(book_id));
+             	 }
+             	 
+             	 byte [] arr2 = dhlpr.getBookContents(book_id);
+                 fos.write(arr2);
+                 fos.flush();
+                
+             }finally
+             { 
+            	 fos.close();
+             }
+    		
+    		
+        	long len = f.length();
+        	if (len == 0) {
+        		mGraphView.showText("file '" + filename + "' not found");
+        	}
+        	else {
+        		mGraphView.showText("file '" + filename + "' has " + len + " bytes");
+    	    	openFile(f, password);
+        	}
+    	}
+        catch (PDFAuthenticationFailureException e) {
+        	throw e; 
+		} catch (Throwable e) {
+			e.printStackTrace();
+			mGraphView.showText("Exception: "+e.getMessage());
+		}
+        long stopTime = System.currentTimeMillis();
+        mGraphView.fileMillis = stopTime-startTime;
     	//dhlpr.g
     	//openFile(f, password);
 	}
@@ -833,18 +862,18 @@ public class PdfViewerICEActivity extends Activity {
         if (password == null)
         {
         	mPdfFile = new PDFFile(new NetByteBuffer(bb));
-        	 ByteArrayOutputStream bos = new ByteArrayOutputStream(); 
-        	 try { 
-        	      ObjectOutput out = new ObjectOutputStream(bos); 
-        	      out.writeObject(mPdfFile); 
-        	      out.close(); 
-        	 
-        	      // Get the bytes of the serialized object 
-        	      byte[] buf = bos.toByteArray(); 
-        	 
-        	    } catch(IOException ioe) { 
-        	      Log.e("serializeObject", "error", ioe); 
-        	    }
+//        	 ByteArrayOutputStream bos = new ByteArrayOutputStream(); 
+//        	 try { 
+//        	      ObjectOutput out = new ObjectOutputStream(bos); 
+//        	      out.writeObject(mPdfFile); 
+//        	      out.close(); 
+//        	 
+//        	      // Get the bytes of the serialized object 
+//        	      byte[] buf = bos.toByteArray(); 
+//        	 
+//        	    } catch(IOException ioe) { 
+//        	      Log.e("serializeObject", "error", ioe); 
+//        	    }
         	// mGraphView.setFileLoaded();
         	 
         	

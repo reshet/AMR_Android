@@ -2,6 +2,10 @@ package com.mplatforma.amr;
 
 import java.util.ArrayList;
 
+import com.mplatforma.amr.server.BookDTO;
+import com.mplatforma.amr.server.PageDTO;
+
+
 import net.sf.andpdf.pdfviewer.PdfViewerActivity;
 
 import db.Book;
@@ -37,8 +41,8 @@ public class ShelfBookmarksActivity extends ListActivity {
        super.onCreate(savedInstanceState);      
        this.dh = new DataHelper(this);
        this.dh.deleteAll();
-       dh.insert_book("book1");
-       dh.insert_book("book2");
+       dh.insert_book(new BookDTO(1,"Book 1)",new ArrayList<PageDTO>()));
+       dh.insert_book(new BookDTO(2,"Book 2)",new ArrayList<PageDTO>()));
        ArrayList<Book> books = new ArrayList<Book>();
        books.addAll(this.dh.getAllBooks());
        dh.insert_bookmark(books.get(0).getId(), 24, "First, book1");
@@ -62,7 +66,7 @@ public class ShelfBookmarksActivity extends ListActivity {
     	   Book b = dh.getBook(bookmarks.get(i));
     	   book[i] = b.getTitle();
        }
-       // Почему-то не работает компаратор... вылетает... посмотри
+       // пїЅпїЅпїЅпїЅпїЅпїЅ-пїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ... пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ... пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ
        //Collections.sort(bookmarks, Bookmark.getDateComparator());
        BaseAdapter mAdapter = new myAdapter(this);  
        setListAdapter(mAdapter);  

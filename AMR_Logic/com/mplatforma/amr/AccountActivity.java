@@ -32,6 +32,7 @@ import org.springframework.web.client.RestTemplate;
 import com.google.gson.Gson;
 import com.google.gson.JsonSyntaxException;
 import com.mplatforma.amr.server.BookDTO;
+import com.mplatforma.amr.server.PageDTO;
 
 import db.DataHelper;
 
@@ -189,17 +190,7 @@ public class AccountActivity extends Activity {
     	}
     }
     
-    final Handler page_hdlr = new Handler()
-    {
-    	public void handleMessage(Message m)
-    	{
-    		String randvalue = m.getData().getString("value");
-    		
-    		TextView ed =(TextView)findViewById(R.id.txt_view);
-    		ed.setText(randvalue);
-    		Log.d("catdebug.log","value: "+randvalue);
-    	}
-    };
+    
     private void serverAuthSpring(String username,String password)
     {
     	
@@ -268,137 +259,73 @@ public class AccountActivity extends Activity {
     	String response="";
     }
     
-    private void serverGetPage(int id)
-    {
-    	
-    	// Create a new RestTemplate instance
-    	RestTemplate restTemplate = new RestTemplate();
-
-    	// The URL for making the GET request
-    	String url = "http://192.168.0.101:8080/AMR_Facade/resources/entity.page/find";
-    	//String url = "http://mplatforma.com:8080/AMR_Facade/resources/entity.customer/login";
-
-    	// Instantiate the HTTP GET request, expecting an array of 
-    	// Product objects in response
-    	//Product[] products = restTemplate.getForObject(url, Product[].class);
-    	
-    	
-    	DefaultHttpClient cl = new DefaultHttpClient();
-		//HttpGet getMethod = new HttpGet("http://178.63.43.214:3010/get_true_random");
-		if(!url.endsWith("?"))
-	        url += "?";
-
-	    List<NameValuePair> params = new LinkedList<NameValuePair>();
-
-	    if (id != 0){
-	        params.add(new BasicNameValuePair("id", String.valueOf(id)));
-	    }
-	   
-	    //params.add(new BasicNameValuePair("user", agent.uniqueId));
-
-	    String paramString = URLEncodedUtils.format(params, "utf-8");
-
-	    url += paramString;
-	    
-	    HttpGet getMethod = new HttpGet(url);
-		//getMethod.setParams()
-		final ResponseHandler<String> reps_hdlr = new ResponseHandler<String>() {
-			@Override
-			public String handleResponse(HttpResponse paramHttpResponse)
-					throws ClientProtocolException, IOException {
-				String respMsg="";
-				Log.d("catdebug.log","gor resp: "+paramHttpResponse.getStatusLine().toString());
-				InputStream respStream = paramHttpResponse.getEntity().getContent();
-				Scanner sc = new Scanner(respStream);
-				while(sc.hasNextLine())
-					respMsg += sc.nextLine();
-				//Log.d("catdebug.log","resp value: "+respMsg);
-				//Message m = hdlr.obtainMessage();
-				Message m = page_hdlr.obtainMessage();
-				Bundle b=   new Bundle();
-				b.putString("value", respMsg);
-				m.setData(b);
-				page_hdlr.sendMessage(m);
-				return null;
-			}
-		};
-		try {
-			//for(int i = 0; i < 100;i++)
-				cl.execute(getMethod,reps_hdlr);
-		} catch (ClientProtocolException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-    	String response="";
-    }
-    private void serverGetPageBroot(int book_id, int id)
-    {
-    	
-    	// Create a new RestTemplate instance
-    	RestTemplate restTemplate = new RestTemplate();
-
-    	// The URL for making the GET request
-    	String url = "http://192.168.112.108:8080/AMR_Facade/downloadBinary";
-    	//String url = "http://mplatforma.com:8080/AMR_Facade/resources/entity.customer/login";
-
-    	// Instantiate the HTTP GET request, expecting an array of 
-    	// Product objects in response
-    	//Product[] products = restTemplate.getForObject(url, Product[].class);
-    	
-    	
-    	DefaultHttpClient cl = new DefaultHttpClient();
-		//HttpGet getMethod = new HttpGet("http://178.63.43.214:3010/get_true_random");
-		if(!url.endsWith("?"))
-	        url += "?";
-
-	    List<NameValuePair> params = new LinkedList<NameValuePair>();
-
-	    if (id != 0){
-	        params.add(new BasicNameValuePair("id", String.valueOf(id)));
-	    }
-	   
-	    //params.add(new BasicNameValuePair("user", agent.uniqueId));
-
-	    String paramString = URLEncodedUtils.format(params, "utf-8");
-
-	    url += paramString;
-	    
-	    HttpGet getMethod = new HttpGet(url);
-		//getMethod.setParams()
-		final ResponseHandler<String> reps_hdlr = new ResponseHandler<String>() {
-			@Override
-			public String handleResponse(HttpResponse paramHttpResponse)
-					throws ClientProtocolException, IOException {
-				String respMsg="";
-				Log.d("catdebug.log","gor resp: "+paramHttpResponse.getStatusLine().toString());
-				InputStream respStream = paramHttpResponse.getEntity().getContent();
-				
-				byte [] arr = IOUtils.toByteArray(respStream);
-				//if (dh.)
-				dh.insert_book("buka");
-				Message m = page_hdlr.obtainMessage();
-				Bundle b=   new Bundle();
-				b.putString("value", "downloaded");
-				m.setData(b);
-				page_hdlr.sendMessage(m);
-				return null;
-			}
-		};
-		try {
-			//for(int i = 0; i < 100;i++)
-				cl.execute(getMethod,reps_hdlr);
-		} catch (ClientProtocolException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-    	String response="";
-    }
+//    private void serverGetPage(int id)
+//    {
+//    	
+//    	// Create a new RestTemplate instance
+//    	RestTemplate restTemplate = new RestTemplate();
+//
+//    	// The URL for making the GET request
+//    	String url = "http://192.168.0.101:8080/AMR_Facade/resources/entity.page/find";
+//    	//String url = "http://mplatforma.com:8080/AMR_Facade/resources/entity.customer/login";
+//
+//    	// Instantiate the HTTP GET request, expecting an array of 
+//    	// Product objects in response
+//    	//Product[] products = restTemplate.getForObject(url, Product[].class);
+//    	
+//    	
+//    	DefaultHttpClient cl = new DefaultHttpClient();
+//		//HttpGet getMethod = new HttpGet("http://178.63.43.214:3010/get_true_random");
+//		if(!url.endsWith("?"))
+//	        url += "?";
+//
+//	    List<NameValuePair> params = new LinkedList<NameValuePair>();
+//
+//	    if (id != 0){
+//	        params.add(new BasicNameValuePair("id", String.valueOf(id)));
+//	    }
+//	   
+//	    //params.add(new BasicNameValuePair("user", agent.uniqueId));
+//
+//	    String paramString = URLEncodedUtils.format(params, "utf-8");
+//
+//	    url += paramString;
+//	    
+//	    HttpGet getMethod = new HttpGet(url);
+//		//getMethod.setParams()
+//		final ResponseHandler<String> reps_hdlr = new ResponseHandler<String>() {
+//			@Override
+//			public String handleResponse(HttpResponse paramHttpResponse)
+//					throws ClientProtocolException, IOException {
+//				String respMsg="";
+//				Log.d("catdebug.log","gor resp: "+paramHttpResponse.getStatusLine().toString());
+//				InputStream respStream = paramHttpResponse.getEntity().getContent();
+//				Scanner sc = new Scanner(respStream);
+//				while(sc.hasNextLine())
+//					respMsg += sc.nextLine();
+//				//Log.d("catdebug.log","resp value: "+respMsg);
+//				//Message m = hdlr.obtainMessage();
+//				Message m = page_hdlr.obtainMessage();
+//				Bundle b=   new Bundle();
+//				b.putString("value", respMsg);
+//				m.setData(b);
+//				page_hdlr.sendMessage(m);
+//				return null;
+//			}
+//		};
+//		try {
+//			//for(int i = 0; i < 100;i++)
+//				cl.execute(getMethod,reps_hdlr);
+//		} catch (ClientProtocolException e) {
+//			// TODO Auto-generated catch block
+//			e.printStackTrace();
+//		} catch (IOException e) {
+//			// TODO Auto-generated catch block
+//			e.printStackTrace();
+//		}
+//    	String response="";
+//    }
+    
     
     
     private void serverGetBookList(String username,String password)

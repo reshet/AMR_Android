@@ -1,23 +1,41 @@
 package com.mplatforma.amr;
 import java.util.ArrayList;
+import java.util.Collection;
+
+import net.sf.andpdf.pdfviewer.PdfFileSelectActivity;
+import net.sf.andpdf.pdfviewer.PdfViewerActivity;
+import net.sf.andpdf.pdfviewer.PdfViewerICE2Activity;
+import net.sf.andpdf.pdfviewer.PdfViewerICEActivity;
+
+import com.mplatforma.amr.server.AttachmentDTO;
+import com.mplatforma.amr.server.BookDTO;
+import com.mplatforma.amr.server.PageDTO;
+import com.mplatforma.amr.server.ServerConnector;
 
 import db.Book;
 import db.Bookmark;
 import db.DataHelper;
 import android.app.ExpandableListActivity;
+import android.content.Intent;
+import android.graphics.Color;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.ContextMenu;
 import android.view.Gravity;
+import android.view.LayoutInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.ContextMenu.ContextMenuInfo;
+import android.view.View.OnClickListener;
 import android.widget.AbsListView;
 import android.widget.BaseExpandableListAdapter;
+import android.widget.Button;
 import android.widget.ExpandableListAdapter;
 import android.widget.ExpandableListView;
+import android.widget.ImageView;
 import android.widget.ExpandableListView.OnChildClickListener;
+import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 import android.widget.ExpandableListView.ExpandableListContextMenuInfo;
@@ -25,10 +43,21 @@ import android.widget.ExpandableListView.ExpandableListContextMenuInfo;
 //import com.example.android.apis.R;
 
 public class ShelfBooksActivity extends ExpandableListActivity {
+	   public static final String EXTRA_PDFFILENAME = "net.sf.andpdf.extra.PDFFILENAME";
+	    public static final String EXTRA_PDF_ID = "my.pdf_id";
+	    public static final String EXTRA_SHOWIMAGES = "net.sf.andpdf.extra.SHOWIMAGES";
+	    public static final String EXTRA_ANTIALIAS = "net.sf.andpdf.extra.ANTIALIAS";
+	    public static final String EXTRA_USEFONTSUBSTITUTION = "net.sf.andpdf.extra.USEFONTSUBSTITUTION";
+	    public static final String EXTRA_KEEPCACHES = "net.sf.andpdf.extra.KEEPCACHES";
+	
+	
+	
 	ExpandableListView epView;
     ExpandableListAdapter mAdapter;
     DataHelper dh;
-    private String[] books;    
+    private String[] books;
+    private Integer[] books_ids;
+    
     private String[][] bookmarks;
     private String[][] pages;
 
@@ -40,9 +69,20 @@ public class ShelfBooksActivity extends ExpandableListActivity {
         mAdapter = new MyExpandableListAdapter();
         this.dh = new DataHelper(this);
         this.dh.deleteAll();
-        dh.insert_book("book1");
-        dh.insert_book("book2");
-        dh.insert_book("book3");
+        
+        //SAMPLE
+	        ArrayList<PageDTO> dtos = new ArrayList<PageDTO>();
+	        Collection<AttachmentDTO> atts = new ArrayList<AttachmentDTO>();
+	        atts.add(new AttachmentDTO(1,"attachment 1"));
+	        atts.add(new AttachmentDTO(2,"attachment 2"));
+	        for(int i = 0; i < 50;i++)
+	        {
+	        	PageDTO dt = new PageDTO(i, atts);
+	        	dtos.add(dt);
+	        }
+        dh.insert_book(new BookDTO(1,"Book 1)",dtos));
+        dh.insert_book(new BookDTO(2,"Book 2)",new ArrayList<PageDTO>()));
+        dh.insert_book(new BookDTO(3,"Book 3)",new ArrayList<PageDTO>()));
         
         ArrayList<Book> bookslist = new ArrayList<Book>();
         bookslist = dh.getAllBooks();
@@ -55,11 +95,14 @@ public class ShelfBooksActivity extends ExpandableListActivity {
         dh.insert_bookmark(bookslist.get(1).getId(), 6, "Seventh, book2");
        
         books = new String[bookslist.size()];
+        books_ids = new Integer[bookslist.size()];
+        
         bookmarks = new String[bookslist.size()][];
         pages = new String[bookslist.size()][];
         
         for (int i=0; i<bookslist.size(); i++){
         	books[i] = bookslist.get(i).getTitle();
+        	books_ids[i] = bookslist.get(i).getId();
         	ArrayList<Bookmark> bookmarkslist = new ArrayList<Bookmark>();
         	bookmarkslist.addAll(dh.getBookmarks(bookslist.get(i)));
         	bookmarks[i] = new String [bookmarkslist.size()];
@@ -88,8 +131,10 @@ public class ShelfBooksActivity extends ExpandableListActivity {
 
     @Override
     public void onCreateContextMenu(ContextMenu menu, View v, ContextMenuInfo menuInfo) {
-        menu.setHeaderTitle("Sample menu");
+        menu.setHeaderTitle("Loading book...");
         menu.add(0, 0, 0, R.string.hello);
+        menu.add(0, 0, 0, menuInfo.toString());
+        
     }
 
     @Override
@@ -112,6 +157,21 @@ public class ShelfBooksActivity extends ExpandableListActivity {
         }
 
         return false;
+    }
+    
+    private void openBook(int id)
+    {
+    	
+    	
+    	boolean useFontSubstitution = false;
+    	boolean keepCaches = true;
+////    	
+//    	
+    	Intent intent = new Intent(ShelfBooksActivity.this, PdfViewerICE2Activity.class)
+		.putExtra(EXTRA_PDF_ID, id)
+		.putExtra(EXTRA_USEFONTSUBSTITUTION, useFontSubstitution)
+		.putExtra(EXTRA_KEEPCACHES, keepCaches);
+    	startActivity(intent);
     }
 
     /**
@@ -136,23 +196,45 @@ public class ShelfBooksActivity extends ExpandableListActivity {
             return bookmarks[groupPosition].length;
         }
 
-        public TextView getGenericView() {
-            // Layout parameters for the ExpandableListView
+        public LinearLayout getGenericView(String txt) {
+             //Layout parameters for the ExpandableListView
             AbsListView.LayoutParams lp = new AbsListView.LayoutParams(
                     ViewGroup.LayoutParams.MATCH_PARENT, 64);
 
-            TextView textView = new TextView(ShelfBooksActivity.this);
-            textView.setLayoutParams(lp);
-            // Center the text vertically
-            textView.setGravity(Gravity.CENTER_VERTICAL | Gravity.LEFT);
+            
+//            TextView textView = new TextView(ShelfBooksActivity.this);
+//            textView.setLayoutParams(lp);
+//            // Center the text vertically
+//            textView.setGravity(Gravity.CENTER_VERTICAL | Gravity.LEFT);
+//            // Set the text starting position
+//            textView.setPadding(53, 0, 0, 0);
+//            
+//            
+            
+//            LayoutInflater inflater = ShelfBooksActivity.this.getLayoutInflater();  
+//            View rowView = inflater.inflate(R.layout.rowlayout, null, true);  
+//            
+            LinearLayout l = new LinearLayout(ShelfBooksActivity.this);
+            l.setLayoutParams(lp);
+            l.setGravity(Gravity.CENTER_VERTICAL | Gravity.LEFT);
             // Set the text starting position
-            textView.setPadding(53, 0, 0, 0);
-            return textView;
+            l.setPadding(53, 0, 0, 0);
+            
+            TextView textView2 = new TextView(ShelfBooksActivity.this);  
+            ImageView imageView = new ImageView(ShelfBooksActivity.this);  
+            textView2.setText(txt);  
+           // textView2.setText(getGroup(groupPosition).toString()); 
+            Button button =  new Button(ShelfBooksActivity.this);
+            button.setText("Открыть");
+            l.addView(imageView);
+            l.addView(textView2);
+            l.addView(button);
+            return l;
         }
 
         public View getChildView(int groupPosition, int childPosition, boolean isLastChild,
                 View convertView, ViewGroup parent) {
-            TextView textView = getGenericView();
+            TextView textView = new TextView(ShelfBooksActivity.this);
             textView.setText(getChild(groupPosition, childPosition).toString());
             return textView;
         }
@@ -168,12 +250,36 @@ public class ShelfBooksActivity extends ExpandableListActivity {
         public long getGroupId(int groupPosition) {
             return groupPosition;
         }
-
-        public View getGroupView(int groupPosition, boolean isExpanded, View convertView,
+        @Override
+        public View getGroupView(final int groupPosition, boolean isExpanded, View convertView,
                 ViewGroup parent) {
-            TextView textView = getGenericView();
-            textView.setText(getGroup(groupPosition).toString());
-            return textView;
+        	
+        	AbsListView.LayoutParams lp = new AbsListView.LayoutParams(
+                    ViewGroup.LayoutParams.MATCH_PARENT, 64);
+        	
+        	 LayoutInflater inflater = ShelfBooksActivity.this.getLayoutInflater();  
+             View rowView = inflater.inflate(R.layout.rowlayout, null, true);  
+             rowView.setLayoutParams(lp);
+             TextView textView = (TextView) rowView.findViewById(R.id.label);  
+             ImageView imageView = (ImageView) rowView.findViewById(R.id.icon);  
+             //textView.setText(names.get(position));  
+             
+             Button button =  (Button) rowView.findViewById(R.id.BtnToClick);
+             
+             button.setOnClickListener(new OnClickListener() {
+                 public void onClick(View v) {
+                	 openBook(books_ids[groupPosition]);
+                     //v.setBackgroundColor(Color.GREEN);
+                 }
+             });
+             
+             //String s = names.get(position);
+             String s = getGroup(groupPosition).toString();
+             textView.setText(s); 
+             imageView.setImageResource(R.drawable.book1);
+             
+            
+            return rowView;
         }
 
         public boolean isChildSelectable(int groupPosition, int childPosition) {

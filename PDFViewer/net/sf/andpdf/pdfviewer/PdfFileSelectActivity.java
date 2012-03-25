@@ -39,6 +39,7 @@ public class PdfFileSelectActivity extends ListActivity {
 	public static final boolean DEFAULTKEEPCACHES = false;
 	
     public static final String EXTRA_PDFFILENAME = "net.sf.andpdf.extra.PDFFILENAME";
+    public static final String EXTRA_PDF_ID = "my.pdf_id";
     public static final String EXTRA_SHOWIMAGES = "net.sf.andpdf.extra.SHOWIMAGES";
     public static final String EXTRA_ANTIALIAS = "net.sf.andpdf.extra.ANTIALIAS";
     public static final String EXTRA_USEFONTSUBSTITUTION = "net.sf.andpdf.extra.USEFONTSUBSTITUTION";
