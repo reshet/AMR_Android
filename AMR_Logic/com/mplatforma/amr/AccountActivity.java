@@ -34,6 +34,7 @@ import com.google.gson.JsonSyntaxException;
 import com.mplatforma.amr.server.BookDTO;
 import com.mplatforma.amr.server.PageDTO;
 
+import db.Book;
 import db.DataHelper;
 
 import android.app.Activity;
@@ -60,8 +61,8 @@ public class AccountActivity extends Activity {
 	private OnClickListener auth_listener = new OnClickListener() {
 		@Override
 		public void onClick(View v) {
-			serverAuthSpring("kostya.personal@gmail.com","kassiopeya");
-			//serverGetBookList("kostya.personal@gmail.com","kassiopeya");
+			//serverAuthSpring("kostya.personal@gmail.com","kassiopeya");
+			serverGetBookList("kostya.personal@gmail.com","kassiopeya");
 			//serverGetPageBroot(100,3);
 			//serverAuthSpring(username, password)
 		}
@@ -80,57 +81,7 @@ public class AccountActivity extends Activity {
       //  this.setWallpaper(.getBitmap());
     }
     
-    private void serverAuth2()
-    {
-    	String NAMESPACE = "http://localhost:8080/";
-    	String GET_INTREBARE = "getBookCount";
-    	String URL_WS = "http://localhost:8080/WebAmrApp/AmrBean";
-    	try
-    	{
-    	SoapObject request = new SoapObject(NAMESPACE, GET_INTREBARE);
-    	 
-    	// add paramaters and values
-    	//request.addProperty("idTest", idTest);
-    	//request.addProperty("idIntrebare", idIntrebare);
-    	 
-    	SoapSerializationEnvelope envelope = new SoapSerializationEnvelope(SoapEnvelope.VER11);
-    	//envelope.`
-    	//envelope.dotNet = true;
-    	envelope.setOutputSoapObject(request);
-    	 
-    	//Web method cal
-    	HttpTransport androidHttpTransport = new HttpTransport(URL_WS);
-    	androidHttpTransport.call(NAMESPACE + GET_INTREBARE, envelope);
-    	//get the response
-    	SoapObject result = (SoapObject) envelope.getResponse();
-    	 
-    	//the response object can be retrieved by its name: result.getProperty("objectName")
-    	}
-    	catch (Exception e)
-    	{
-    	e.printStackTrace();
-    	}
-    }
-    private void serverAuth()
-    {
-    	WebService ws = new WebService("http://reshet-u43sd:8080/WebAmrApp/resources/com.mplatrforma.amr.entity.account/count");
-    	 Map<String, String> params = new HashMap<String, String>();
-    	 String response = ws.webGet("", params);
-    	 
-    	 AlertDialog d = new AlertDialog.Builder(this).setMessage("RESP:"+response)
-    			 .setTitle("WEB response:")
-    			 .setPositiveButton("OK", new DialogInterface.OnClickListener() {
- 	                public void onClick(DialogInterface dialog, int whichButton) {
- 	            		dialog.dismiss();
- 	                }
- 	            })
- 	            .setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
- 	                public void onClick(DialogInterface dialog, int whichButton) {
- 	                }
- 	            })
- 	            .create();
-    	 d.show();
-    }
+   
     final Handler hdlr = new Handler()
     {
     	public void handleMessage(Message m)
@@ -184,10 +135,41 @@ public class AccountActivity extends Activity {
     
     private void FillDatabase(List<BookDTO> books)
     {
+    	ArrayList<Book> local_books = dh.getAllBooks();
+    	ArrayList<Integer> ext_local_ids = new ArrayList<Integer>();
+    	ArrayList<Integer> ext_remote_ids = new ArrayList<Integer>();
+    	for(Book b:local_books)
+    	{
+    		ext_local_ids.add(b.getExid());
+    	}
     	for(BookDTO book:books)
     	{
-    		//dh.i
+    		ext_remote_ids.add(book.getId());
     	}
+    	
+    	int i = 0;
+    	for(Book b:local_books)
+    	{
+    		if(!ext_remote_ids.contains(b.getExid()))
+    		{
+    			//DELETE BOOK AND ALL CACHES AND ALL ATTS.
+    			dh.delete_book_deep(b.getId());
+    		}
+    		i++;
+    	}
+    	i=0;
+    	for(BookDTO book:books)
+    	{
+    		if(!ext_local_ids.contains(book.getId()))
+    		{
+    			//ADD LOCALLY BOOK META.
+    			dh.insert_book(book);
+    		}
+    	}
+    	
+    	
+    
+    	
     }
     
     
@@ -259,97 +241,17 @@ public class AccountActivity extends Activity {
     	String response="";
     }
     
-//    private void serverGetPage(int id)
-//    {
-//    	
-//    	// Create a new RestTemplate instance
-//    	RestTemplate restTemplate = new RestTemplate();
-//
-//    	// The URL for making the GET request
-//    	String url = "http://192.168.0.101:8080/AMR_Facade/resources/entity.page/find";
-//    	//String url = "http://mplatforma.com:8080/AMR_Facade/resources/entity.customer/login";
-//
-//    	// Instantiate the HTTP GET request, expecting an array of 
-//    	// Product objects in response
-//    	//Product[] products = restTemplate.getForObject(url, Product[].class);
-//    	
-//    	
-//    	DefaultHttpClient cl = new DefaultHttpClient();
-//		//HttpGet getMethod = new HttpGet("http://178.63.43.214:3010/get_true_random");
-//		if(!url.endsWith("?"))
-//	        url += "?";
-//
-//	    List<NameValuePair> params = new LinkedList<NameValuePair>();
-//
-//	    if (id != 0){
-//	        params.add(new BasicNameValuePair("id", String.valueOf(id)));
-//	    }
-//	   
-//	    //params.add(new BasicNameValuePair("user", agent.uniqueId));
-//
-//	    String paramString = URLEncodedUtils.format(params, "utf-8");
-//
-//	    url += paramString;
-//	    
-//	    HttpGet getMethod = new HttpGet(url);
-//		//getMethod.setParams()
-//		final ResponseHandler<String> reps_hdlr = new ResponseHandler<String>() {
-//			@Override
-//			public String handleResponse(HttpResponse paramHttpResponse)
-//					throws ClientProtocolException, IOException {
-//				String respMsg="";
-//				Log.d("catdebug.log","gor resp: "+paramHttpResponse.getStatusLine().toString());
-//				InputStream respStream = paramHttpResponse.getEntity().getContent();
-//				Scanner sc = new Scanner(respStream);
-//				while(sc.hasNextLine())
-//					respMsg += sc.nextLine();
-//				//Log.d("catdebug.log","resp value: "+respMsg);
-//				//Message m = hdlr.obtainMessage();
-//				Message m = page_hdlr.obtainMessage();
-//				Bundle b=   new Bundle();
-//				b.putString("value", respMsg);
-//				m.setData(b);
-//				page_hdlr.sendMessage(m);
-//				return null;
-//			}
-//		};
-//		try {
-//			//for(int i = 0; i < 100;i++)
-//				cl.execute(getMethod,reps_hdlr);
-//		} catch (ClientProtocolException e) {
-//			// TODO Auto-generated catch block
-//			e.printStackTrace();
-//		} catch (IOException e) {
-//			// TODO Auto-generated catch block
-//			e.printStackTrace();
-//		}
-//    	String response="";
-//    }
-    
-    
     
     private void serverGetBookList(String username,String password)
     {
     	
-    	// Create a new RestTemplate instance
-    	RestTemplate restTemplate = new RestTemplate();
-
     	// The URL for making the GET request
-    	String url = "http://192.168.112.108:8080/AMR_Facade/resources/entity.customer/booklist";
-    	//String url = "http://mplatforma.com:8080/AMR_Facade/resources/entity.customer/login";
-
-    	// Instantiate the HTTP GET request, expecting an array of 
-    	// Product objects in response
-    	//Product[] products = restTemplate.getForObject(url, Product[].class);
-    	
+    	String url = "http://192.168.114.102:8080/AMR_Facade/resources/entity.customer/booklist";
     	
     	DefaultHttpClient cl = new DefaultHttpClient();
-		//HttpGet getMethod = new HttpGet("http://178.63.43.214:3010/get_true_random");
 		if(!url.endsWith("?"))
 	        url += "?";
-
 	    List<NameValuePair> params = new LinkedList<NameValuePair>();
-
 	    if (username != null && password != null){
 	        params.add(new BasicNameValuePair("username", username));
 	        params.add(new BasicNameValuePair("password", password));

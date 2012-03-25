@@ -40,19 +40,19 @@ public class ShelfBookmarksActivity extends ListActivity {
     public void onCreate(Bundle savedInstanceState) {
        super.onCreate(savedInstanceState);      
        this.dh = new DataHelper(this);
-       this.dh.deleteAll();
-       dh.insert_book(new BookDTO(1,"Book 1)",new ArrayList<PageDTO>()));
-       dh.insert_book(new BookDTO(2,"Book 2)",new ArrayList<PageDTO>()));
+       //this.dh.deleteAll();
+       //dh.insert_book(new BookDTO(1,"Book 1)",new ArrayList<PageDTO>()));
+       //dh.insert_book(new BookDTO(2,"Book 2)",new ArrayList<PageDTO>()));
        ArrayList<Book> books = new ArrayList<Book>();
        books.addAll(this.dh.getAllBooks());
-       dh.insert_bookmark(books.get(0).getId(), 24, "First, book1");
-       dh.insert_bookmark(books.get(1).getId(), 12, "Second, book2");
-       dh.insert_bookmark(books.get(1).getId(), 1, "Third, book2");
-       dh.insert_bookmark(books.get(0).getId(), 2, "Forth, book1");
-       dh.insert_bookmark(books.get(0).getId(), 2, "Fifth, book1");
-       dh.insert_bookmark(books.get(0).getId(), 3, "Sixth, book1");
-       dh.insert_bookmark(books.get(1).getId(), 6, "Seventh, book2");
-       
+//       dh.insert_bookmark(books.get(0).getId(), 24, "First, book1");
+//       dh.insert_bookmark(books.get(1).getId(), 12, "Second, book2");
+//       dh.insert_bookmark(books.get(1).getId(), 1, "Third, book2");
+//       dh.insert_bookmark(books.get(0).getId(), 2, "Forth, book1");
+//       dh.insert_bookmark(books.get(0).getId(), 2, "Fifth, book1");
+//       dh.insert_bookmark(books.get(0).getId(), 3, "Sixth, book1");
+//       dh.insert_bookmark(books.get(1).getId(), 6, "Seventh, book2");
+//       
        ArrayList<Bookmark> bookmarks = new ArrayList<Bookmark>();
        bookmarks.addAll(dh.getAllBookmarks());
        

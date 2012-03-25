@@ -25,7 +25,7 @@ import android.util.Log;
 public class DataHelper {
  
    private static final String DATABASE_NAME = "AMR_DB.db";
-   private static final int DATABASE_VERSION = 7;
+   private static final int DATABASE_VERSION = 8;
    
    private static final String BITMAP_TABLE_NAME = "bitmaps";
    private static final String BOOK_TABLE_NAME = "books";
@@ -106,6 +106,11 @@ public class DataHelper {
    private SQLiteStatement ins_bitmap_smt, ins_bookmark_stmt, ins_book_stmt,
    							ins_attachment_smt, ins_page_smt;
    
+   private static final String UPDATE_COVER = "update "
+		   + BOOK_TABLE_NAME + " set " 
+		   + BOOK_COLUMN_COVER + " = ? "
+		   + "where " + BOOK_COLUMN_EXTERNAL_ID + " = ?";
+   
    private static final String UPDATE_ATTACHMENT = "update "
 		   + ATTACHMENT_TABLE_NAME + " set " 
 		   + ATTACHMENT_COLUMN_ITSELF + " = ? "
@@ -116,16 +121,24 @@ public class DataHelper {
 		   + PAGE_COLUMN_PNG + " = ? "
 		   + "where " + PAGE_COLUMN_ID + " = ?";
    
-   private static final String UPDATE_COVER = "update "
-		   + BOOK_TABLE_NAME + " set " 
-		   + BOOK_COLUMN_COVER + " = ? "
-		   + "where " + BOOK_COLUMN_EXTERNAL_ID + " = ?";
-   
    private static final String UPDATE_BOOK = "update "
 		   + BOOK_TABLE_NAME + " set " 
 		   + BOOK_COLUMN_BOOK + " = ? "
 		   + "where " + BOOK_COLUMN_EXTERNAL_ID + " = ?";
-		   
+   
+   
+   private static final String DELETE_ATTACHMENT = "delete * from "
+		   + ATTACHMENT_TABLE_NAME
+		   + " where " + ATTACHMENT_COLUMN_ID + " = ?";
+   
+   private static final String DELETE_PAGE = "delete * from "
+		   + PAGE_TABLE_NAME 
+		   + " where " + PAGE_COLUMN_ID + " = ?";
+   
+   private static final String DELETE_BOOK = "delete * from "
+		   + BOOK_TABLE_NAME 
+		   + " where " + BOOK_COLUMN_EXTERNAL_ID + " = ?";
+   	   
    private static final String INSERT_BITMAP = "insert into "
 		   + BITMAP_TABLE_NAME + " ( "+ BITMAP_COLUMN_ID 
 		   + " , " + BITMAP_COLUMN_BITMAP 
@@ -209,12 +222,12 @@ public class DataHelper {
 		   //this.ins_page_smt.bindBlob(3, null);
 		   out = this.ins_page_smt.executeInsert();
 		   i++;
+		   insert_attachment(page);
 	   }	   
 	   return out;
    }
-   public long insert_attachment(BookDTO book){
-	   for (PageDTO page : book.getPageCollection()) {
-		   int page_id = this.getPageID(page);
+   public long insert_attachment(PageDTO page){
+	      int page_id = this.getPageID(page);
 		   for (AttachmentDTO attachment : page.getAttachmentCollection()){
 			   this.ins_attachment_smt.bindLong(1, page_id);
 			   this.ins_attachment_smt.bindLong(2, attachment.getId());
@@ -222,25 +235,27 @@ public class DataHelper {
 			 //  this.ins_attachment_smt.bindBlob(4, null);
 			   this.ins_attachment_smt.executeInsert();
 		   }
-	   }	   
 	   return 0;
    }
-   public void update_attachment(int id, byte[] bMapArray){
-	   Object[] bindArgs = new Object[] {id, bMapArray};
-	   try{
-		   OpenHelper.getWritableDatabase().execSQL(UPDATE_ATTACHMENT, bindArgs);
-	   }catch(SQLException e){
-		   Log.e("Error update", e.toString());
-	   }
-   }
+   
    public void update_cover(int id, byte[] bMapArray){
-	   Object[] bindArgs = new Object[] {id, bMapArray};
+	   Object[] bindArgs = new Object[] {bMapArray,id };
 	   try{
-		   OpenHelper.getWritableDatabase().execSQL(UPDATE_COVER, bindArgs);
+		   this.db.execSQL(UPDATE_COVER, bindArgs);
 	   }catch(SQLException e){
 		   Log.e("Error update", e.toString());
 	   }
    }
+   
+   public void update_attachment(int id, byte[] bMapArray){
+	   Object[] bindArgs = new Object[] {bMapArray,id};
+	   try{
+		  this.db.execSQL(UPDATE_ATTACHMENT, bindArgs);
+	   }catch(SQLException e){
+		   Log.e("Error update", e.toString());
+	   }
+   }
+  
    public void update_page(int id, byte[] bMapArray){
 	   Object[] bindArgs = new Object[] {bMapArray,id};
 	   try{
@@ -259,6 +274,52 @@ public class DataHelper {
 	   }
    }
    
+   
+   public void delete_attachment(int id){
+	   Object[] bindArgs = new Object[] {id};
+	   try{
+		  this.db.execSQL(DELETE_ATTACHMENT, bindArgs);
+	   }catch(SQLException e){
+		   Log.e("Error update", e.toString());
+	   }
+   }
+  
+   public void delete_page(int id){
+	   Object[] bindArgs = new Object[] {id};
+	   try{
+		   this.db.execSQL(DELETE_PAGE, bindArgs);
+	   }catch(SQLException e){
+		   Log.e("Error update", e.toString());
+	   }
+   }
+   public void delete_book(int id){
+	   Object[] bindArgs = new Object[] {id};
+	   try{
+		   this.db.execSQL(DELETE_BOOK, bindArgs);
+		   //OpenHelper.getWritableDatabase().execSQL(UPDATE_BOOK, bindArgs);
+	   }catch(SQLException e){
+		   Log.e("Error update", e.toString());
+	   }
+   }
+   
+   public void delete_book_deep(int id){
+	  Book b = getBook(id);
+	  if(b!=null)
+	  {
+		  List<Integer> pageids = getBookPageIDs(id);
+		  for(Integer idpage:pageids)
+		  {
+			  delete_page(idpage);
+			  List<AttachmentDTO> atts = getAttachments(idpage);
+			  for(AttachmentDTO att:atts)
+			  {
+				  delete_attachment(att.getId());
+			  }
+		  }
+		  delete_book(id);
+	  }
+   }   
+   
    public Bitmap get(int page){
 	  
 	   Bitmap bi = null;	   
@@ -272,10 +333,9 @@ public class DataHelper {
 		   }
 		   ByteArrayInputStream inputStream = new ByteArrayInputStream(c.getBlob(1));
 		   bi = BitmapFactory.decodeStream(inputStream);   
-		   if (c != null && !c.isClosed())
-		         c.close();
-	  	  
-	   }	   
+	   }
+	   if (c != null && !c.isClosed())
+	         c.close();
 	return bi;	   
    }
    
@@ -292,22 +352,22 @@ public class DataHelper {
 			   	bi = BitmapFactory.decodeStream(inputStream);   
 		   }
 	   }
-	   if (c != null && !c.isClosed()) c.close();
-//	   if(c.getCount() > 0){
-//		   int count = 0;
-//		   while (count != page)
-//		   {
-//			   c.moveToNext();
-//			   ++count;
-//		   }
-//		   ByteArrayInputStream inputStream = new ByteArrayInputStream(c.getBlob(1));
-//		   bi = BitmapFactory.decodeStream(inputStream);   
-//		   if (c != null && !c.isClosed())
-//		         c.close();
-//	  	  
-//	   }	   
+	   if (c != null && !c.isClosed()) c.close();   
 	return bi;	   
    }
+   
+   public Book getBook(int book_id){
+		  
+	   Book b = null;	   
+	   Cursor c = this.db.rawQuery("SELECT * FROM " +BOOK_TABLE_NAME + " WHERE " + BOOK_COLUMN_ID + " = "  + book_id + " ; ", null);
+	   if (!c.isAfterLast()){
+		   c.moveToFirst();
+		   b = new Book(c.getInt(0), c.getInt(1), c.getBlob(2), c.getString(3), c.getInt(4), c.getBlob(5)); 
+	   }
+	   if (c != null && !c.isClosed()) c.close();   
+	return b;	   
+   }
+   
    public int getBookID(BookDTO b){
 	   int id = 0;
 	   Cursor c = this.db.rawQuery(" SELECT " + BOOK_COLUMN_ID + " FROM " + BOOK_TABLE_NAME + 
@@ -347,7 +407,7 @@ public class DataHelper {
    }
    public byte[] getAttacmentContents(int id){
 	   byte [] arr = null;
-	   Cursor c = this.db.rawQuery(" SELECT " + ATTACHMENT_COLUMN_ITSELF + " FROM " + ATTACHMENT_COLUMN_NAME + 
+	   Cursor c = this.db.rawQuery(" SELECT " + ATTACHMENT_COLUMN_ITSELF + " FROM " + ATTACHMENT_TABLE_NAME + 
 			   " WHERE " + ATTACHMENT_COLUMN_ID + " = "  + id + " ; ", null);
 	   if (!c.isAfterLast()){
 		   c.moveToFirst();
@@ -360,6 +420,17 @@ public class DataHelper {
 	   int id = 0;
 	   Cursor c = this.db.rawQuery(" SELECT " + PAGE_COLUMN_ID + " FROM " + PAGE_TABLE_NAME + 
 			   " WHERE " + PAGE_COLUMN_EXTERNAL_ID + " = "  + page.getId() + " ; ", null);
+	   if (!c.isAfterLast()){
+		   c.moveToFirst();
+		   id = c.getInt(0);
+	   }
+	   c.close();
+	   return id;
+   }
+   public int getAttachmentServerID(int local_id){
+	   int id = 0;
+	   Cursor c = this.db.rawQuery(" SELECT " + ATTACHMENT_COLUMN_EXTERNAL_ID + " FROM " + ATTACHMENT_TABLE_NAME + 
+			   " WHERE " + ATTACHMENT_COLUMN_ID + " = "  + local_id + " ; ", null);
 	   if (!c.isAfterLast()){
 		   c.moveToFirst();
 		   id = c.getInt(0);
@@ -406,6 +477,18 @@ public class DataHelper {
 	   c.close();  
 	   return arr;
    }
+   public ArrayList<AttachmentDTO> getAttachments(int page_id){
+	   ArrayList<AttachmentDTO> arr = new ArrayList<AttachmentDTO>();
+	   Cursor c = this.db.rawQuery("SELECT " +ATTACHMENT_COLUMN_ID+ ", "+ATTACHMENT_COLUMN_NAME+" FROM " + ATTACHMENT_TABLE_NAME + " WHERE "+ATTACHMENT_COLUMN_PAGEID+" = " + page_id+" ;", null);
+	   c.moveToFirst();
+	   while(!c.isAfterLast()){
+		   AttachmentDTO dot = new AttachmentDTO(c.getInt(0),c.getString(1));
+		   arr.add(dot);
+		   c.moveToNext();	   
+	   }
+	   c.close();  
+	   return arr;
+   }
    public Book getBook(Bookmark b){
 	   Book book = null;
 	   Cursor c = this.db.rawQuery(" SELECT * FROM " + BOOK_TABLE_NAME + " WHERE "+BOOK_COLUMN_ID+" = "
@@ -443,10 +526,11 @@ public class DataHelper {
 			   ++count;
 		   }
 		   zoom = c.getDouble(2);
-		   if (c != null && !c.isClosed())
-		         c.close();
+	
 	  	  
 	   }
+	   if (c != null && !c.isClosed())
+	         c.close();
 	return zoom;
 	   
    }

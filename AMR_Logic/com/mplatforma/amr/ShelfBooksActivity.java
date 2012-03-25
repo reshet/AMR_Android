@@ -68,31 +68,31 @@ public class ShelfBooksActivity extends ExpandableListActivity {
         // Set up our adapter
         mAdapter = new MyExpandableListAdapter();
         this.dh = new DataHelper(this);
-        this.dh.deleteAll();
+      //  this.dh.deleteAll();
         
         //SAMPLE
-	        ArrayList<PageDTO> dtos = new ArrayList<PageDTO>();
-	        Collection<AttachmentDTO> atts = new ArrayList<AttachmentDTO>();
-	        atts.add(new AttachmentDTO(1,"attachment 1"));
-	        atts.add(new AttachmentDTO(2,"attachment 2"));
-	        for(int i = 0; i < 50;i++)
-	        {
-	        	PageDTO dt = new PageDTO(i, atts);
-	        	dtos.add(dt);
-	        }
-        dh.insert_book(new BookDTO(1,"Book 1)",dtos));
-        dh.insert_book(new BookDTO(2,"Book 2)",new ArrayList<PageDTO>()));
-        dh.insert_book(new BookDTO(3,"Book 3)",new ArrayList<PageDTO>()));
-        
+//	        ArrayList<PageDTO> dtos = new ArrayList<PageDTO>();
+//	        Collection<AttachmentDTO> atts = new ArrayList<AttachmentDTO>();
+//	        atts.add(new AttachmentDTO(1,"attachment 1"));
+//	        atts.add(new AttachmentDTO(2,"attachment 2"));
+//	        for(int i = 0; i < 50;i++)
+//	        {
+//	        	PageDTO dt = new PageDTO(i, atts);
+//	        	dtos.add(dt);
+//	        }
+//        dh.insert_book(new BookDTO(1,"Book 1)",dtos));
+//        dh.insert_book(new BookDTO(2,"Book 2)",new ArrayList<PageDTO>()));
+//        dh.insert_book(new BookDTO(3,"Book 3)",new ArrayList<PageDTO>()));
+//        
         ArrayList<Book> bookslist = new ArrayList<Book>();
         bookslist = dh.getAllBooks();
-        dh.insert_bookmark(bookslist.get(0).getId(), 24, "First, book1");
-        dh.insert_bookmark(bookslist.get(1).getId(), 12, "Second, book2");
-        dh.insert_bookmark(bookslist.get(1).getId(), 1, "Third, book2");
-        dh.insert_bookmark(bookslist.get(0).getId(), 2, "Forth, book1");
-        dh.insert_bookmark(bookslist.get(0).getId(), 2, "Fifth, book1");
-        dh.insert_bookmark(bookslist.get(0).getId(), 3, "Sixth, book1");
-        dh.insert_bookmark(bookslist.get(1).getId(), 6, "Seventh, book2");
+//        dh.insert_bookmark(bookslist.get(0).getId(), 24, "First, book1");
+//        dh.insert_bookmark(bookslist.get(1).getId(), 12, "Second, book2");
+//        dh.insert_bookmark(bookslist.get(1).getId(), 1, "Third, book2");
+//        dh.insert_bookmark(bookslist.get(0).getId(), 2, "Forth, book1");
+//        dh.insert_bookmark(bookslist.get(0).getId(), 2, "Fifth, book1");
+//        dh.insert_bookmark(bookslist.get(0).getId(), 3, "Sixth, book1");
+//        dh.insert_bookmark(bookslist.get(1).getId(), 6, "Seventh, book2");
        
         books = new String[bookslist.size()];
         books_ids = new Integer[bookslist.size()];
@@ -258,7 +258,7 @@ public class ShelfBooksActivity extends ExpandableListActivity {
                     ViewGroup.LayoutParams.MATCH_PARENT, 64);
         	
         	 LayoutInflater inflater = ShelfBooksActivity.this.getLayoutInflater();  
-             View rowView = inflater.inflate(R.layout.rowlayout, null, true);  
+             View rowView = inflater.inflate(R.layout.book_item_layout, null, true);  
              rowView.setLayoutParams(lp);
              TextView textView = (TextView) rowView.findViewById(R.id.label);  
              ImageView imageView = (ImageView) rowView.findViewById(R.id.icon);  
@@ -268,7 +268,7 @@ public class ShelfBooksActivity extends ExpandableListActivity {
              
              button.setOnClickListener(new OnClickListener() {
                  public void onClick(View v) {
-                	 openBook(books_ids[groupPosition]);
+                	openBook(books_ids[groupPosition]);
                      //v.setBackgroundColor(Color.GREEN);
                  }
              });

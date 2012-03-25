@@ -54,7 +54,9 @@ import android.widget.LinearLayout;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 
+import com.mplatforma.amr.AttachmentsListActivity;
 import com.mplatforma.amr.R;
+import com.mplatforma.amr.VideoPlayer;
 import com.mplatforma.amr.server.PageDTO;
 import com.mplatforma.amr.server.ServerConnector;
 import com.sun.pdfview.PDFFile;
@@ -89,6 +91,8 @@ public class PdfViewerICE2Activity extends Activity {
 	private final static int MEN_ZOOM_OUT  = 5;
 	private final static int MEN_BACK      = 6;
 	private final static int MEN_CLEANUP   = 7;
+	private final static int MEN_ATTS   = 8;
+	
 	
 	private final static int DIALOG_PAGENUM = 1;
 	private final static int DIALOG_LOAD = 2;
@@ -127,14 +131,14 @@ public class PdfViewerICE2Activity extends Activity {
 		PdfViewerICE2Activity inst =(PdfViewerICE2Activity)getLastNonConfigurationInstance();
 		if (inst != this) {
 			Log.e(TAG, "restoring Instance");
-			mOldGraphView = inst.mGraphView;
-			mPage = inst.mPage;
-			mPdfLoaded = inst.mPdfLoaded;
-			//mPdfPage = inst.mPdfPage;
-			mTmpFile = inst.mTmpFile;
-			mZoom = inst.mZoom;
-			pdf_id = inst.pdf_id;
-			backgroundThread = inst.backgroundThread; 
+//			mOldGraphView = inst.mGraphView;
+//			mPage = inst.mPage;
+//			mPdfLoaded = inst.mPdfLoaded;
+//			//mPdfPage = inst.mPdfPage;
+//			mTmpFile = inst.mTmpFile;
+//			mZoom = inst.mZoom;
+//			pdf_id = inst.pdf_id;
+//			backgroundThread = inst.backgroundThread; 
 			// mGraphView.invalidate();
 		}	
 		return true;
@@ -229,31 +233,29 @@ public class PdfViewerICE2Activity extends Activity {
         }
 	}
 	private synchronized void startRenderThread(final int page, final float zoom) {
-		if (backgroundThread != null)
-			return;
-	//	mGraphView.showText("reading page "+ page+", zoom:"+zoom);
-        backgroundThread = new Thread(new Runnable() {
-			@Override
-			public void run() {
-				try {
-			        if (mPdfLoaded != false) {
-//			        	File f = new File("/sdcard/andpdf.trace");
-//			        	f.delete();
-//			        	Log.e(TAG, "DEBUG.START");
-//			        	Debug.startMethodTracing("andpdf");
-			        	showPage(page, zoom);
-			        	
-//			        	Debug.stopMethodTracing();
-//			        	Log.e(TAG, "DEBUG.STOP");
-			        }
-				} catch (Exception e) {
-					Log.e(TAG, e.getMessage(), e);
-				}
-		        backgroundThread = null;
-			}
-		});
-        updateImageStatus();
-        backgroundThread.start();
+//		if (backgroundThread != null)
+//			return;
+//        backgroundThread = new Thread(new Runnable() {
+//			@Override
+//			public void run() {
+//				try {
+//			        if (mPdfLoaded != false) {
+//			        	showPage(page, zoom);
+//			        }
+//				} catch (Exception e) {
+//					Log.e(TAG, e.getMessage(), e);
+//				}
+//		        backgroundThread = null;
+//			}
+//		});
+//        updateImageStatus();
+//        backgroundThread.start();
+		try {
+			showPage(page, zoom);
+		} catch (Exception e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
 	}
 
 
@@ -281,6 +283,7 @@ public class PdfViewerICE2Activity extends Activity {
         menu.add(Menu.NONE, MEN_ZOOM_OUT, Menu.NONE, "Zoom Out");
         menu.add(Menu.NONE, MEN_ZOOM_IN, Menu.NONE, "Zoom In");
         menu.add(Menu.NONE, MEN_BACK, Menu.NONE, "Back");
+        menu.add(Menu.NONE, MEN_ATTS, Menu.NONE, "Attachments");
         if (HardReference.sKeepCaches)
             menu.add(Menu.NONE, MEN_CLEANUP, Menu.NONE, "Clear Caches");
         	
@@ -322,11 +325,22 @@ public class PdfViewerICE2Activity extends Activity {
             HardReference.cleanup();
             break;
     	}
+    	case MEN_ATTS: {
+            showAttsList();
+            break;
+    	}
     	}
     	return true;
     }
     
-    
+    private void showAttsList()
+    {
+    	int page_id = pages_IDS.get(mPage);
+    	Intent intent = new Intent(this,AttachmentsListActivity.class)
+		.putExtra("PAGE_ID", page_id);
+		startActivityForResult(intent,1); 
+    	
+    }
     private void zoomIn() {
     	if (mPdfLoaded != false) {
     		if (mZoom < 4) {
@@ -776,8 +790,9 @@ public class PdfViewerICE2Activity extends Activity {
              		ServerConnector c = new ServerConnector(dhlpr);
              		//ArrayList<Book> books = dhlpr.getAllBooks();
                 	c.serverGetBook(dhlpr.getBookExtID(book_id));
-                	pages_IDS = dhlpr.getBookPageIDs(book_id);
+                	
              	 }
+    		   	pages_IDS = dhlpr.getBookPageIDs(book_id);
     		   	 mPdfLoaded = true;
              	 //byte [] arr2 = dhlpr.getBookContents(book_id);
          	

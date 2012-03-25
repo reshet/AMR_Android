@@ -1,5 +1,7 @@
 package com.mplatforma.amr.server;
 
+import java.io.File;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
@@ -22,6 +24,7 @@ import com.mplatforma.amr.R;
 import db.DataHelper;
 
 import android.os.Bundle;
+import android.os.Environment;
 import android.os.Handler;
 import android.os.Message;
 import android.util.Log;
@@ -46,6 +49,7 @@ public class ServerConnector {
     	}
     };
     private String base_url = "http://192.168.114.102:8080/AMR_Facade/";
+    public static String base_atts_path = Environment.getExternalStorageDirectory()+"/amr_attachs/";
     //private String base_url = "http://109.251.134.144:8080/AMR_Facade/";
 	public void serverGetBook(final int book_id)
     {
@@ -97,6 +101,87 @@ public class ServerConnector {
 				//dh.insert_book(new BookDTO(1,"Book from inet)",new ArrayList<PageDTO>()));
 				new ZipDecopmosed().unpack(book_id, dh, arr);
 				//dh.update_book(book_id, arr);
+				Message m = page_hdlr.obtainMessage();
+				Bundle b=   new Bundle();
+				b.putString("value", "downloaded");
+				m.setData(b);
+				page_hdlr.sendMessage(m);
+				return null;
+			}
+		};
+		try {
+			//for(int i = 0; i < 100;i++)
+				cl.execute(getMethod,reps_hdlr);
+		} catch (ClientProtocolException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+    	String response="";
+    }
+	
+	public void serverGetAttachment(final int att_id,final int server_att_id)
+    {
+    	
+    	// Create a new RestTemplate instance
+    	RestTemplate restTemplate = new RestTemplate();
+
+    	// The URL for making the GET request
+    	String url = base_url+"downloadAttachment";
+    	DefaultHttpClient cl = new DefaultHttpClient();
+		if(!url.endsWith("?"))
+	        url += "?";
+
+	    List<NameValuePair> params = new LinkedList<NameValuePair>();
+
+	    if (att_id != 0){
+	        params.add(new BasicNameValuePair("id", String.valueOf(server_att_id)));
+	    }	
+	   
+	    //params.add(new BasicNameValuePair("user", agent.uniqueId));
+
+	    String paramString = URLEncodedUtils.format(params, "utf-8");
+
+	    url += paramString;
+	    
+	    HttpGet getMethod = new HttpGet(url);
+		//getMethod.setParams()
+		final ResponseHandler<String> reps_hdlr = new ResponseHandler<String>() {
+			@Override
+			public String handleResponse(HttpResponse paramHttpResponse)
+					throws ClientProtocolException, IOException {
+				String respMsg="";
+				Log.d("catdebug.log","gor resp: "+paramHttpResponse.getStatusLine().toString());
+				InputStream respStream = paramHttpResponse.getEntity().getContent();
+				
+				
+				byte [] arr = IOUtils.toByteArray(respStream);
+				
+				
+				File ff = new File(base_atts_path);
+				ff.mkdirs();
+				File f = new File(base_atts_path,String.valueOf(att_id)+".mp4");
+				if(!f.exists())
+		    		try {
+		    			f.createNewFile();
+		    			//f.
+		    			FileOutputStream fos = new FileOutputStream(f);
+						try{
+					     fos.write(arr);
+			             fos.flush();
+		    			}
+		    	         finally{
+		    	              fos.close();
+		    	         } 
+			    	}catch (IOException e) {
+						// TODO Auto-generated catch block
+						e.printStackTrace();
+					}
+				
+				//dh.update_attachment(att_id, arr);
+				
 				Message m = page_hdlr.obtainMessage();
 				Bundle b=   new Bundle();
 				b.putString("value", "downloaded");
