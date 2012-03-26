@@ -25,11 +25,11 @@ public class AMRActivity extends Activity {
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.main);
-        Button btn1 = (Button)findViewById(R.id.button1);
+        setContentView(R.layout.main_amr);
+        Button btn1 = (Button)findViewById(R.id.button11);
         btn1.setOnClickListener(btn_shelf_listener);
         //btn1.setImageResource(R.drawable.button_shelf);
-        Button btn2 = (Button)findViewById(R.id.button2);
+        Button btn2 = (Button)findViewById(R.id.button12);
         btn2.setOnClickListener(btn_local_listener);
         
 //        Button btn3 = (Button)findViewById(R.id.button3);

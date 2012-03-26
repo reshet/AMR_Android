@@ -246,7 +246,9 @@ public class AccountActivity extends Activity {
     {
     	
     	// The URL for making the GET request
-    	String url = "http://192.168.114.102:8080/AMR_Facade/resources/entity.customer/booklist";
+    	//String url = "http://192.168.114.102:8080/AMR_Facade/resources/entity.customer/booklist";
+    	//String url = "http://10.0.128.158:8080/AMR_Facade/resources/entity.customer/booklist";
+    	String url = "http://mplatforma.com:8080/AMR_Facade/resources/entity.customer/booklist";
     	
     	DefaultHttpClient cl = new DefaultHttpClient();
 		if(!url.endsWith("?"))

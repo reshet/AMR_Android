@@ -11,25 +11,25 @@ import android.widget.SimpleExpandableListAdapter;
 
 public class BookExpandableListView extends Activity {
   
-  // названия компаний (групп)
+  // пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ (пїЅпїЅпїЅпїЅпїЅ)
   String[] groups = new String[] {"HTC", "Samsung", "LG"};
   
-  // названия телефонов (элементов)
+  // пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ (пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ)
   String[] phonesHTC = new String[] {"Sensation", "Desire", "Wildfire", "Hero"};
   String[] phonesSams = new String[] {"Galaxy S II", "Galaxy Nexus", "Wave"};
   String[] phonesLG = new String[] {"Optimus", "Optimus Link", "Optimus Black", "Optimus One"};
   
-  // коллекция для групп
+  // пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ
   ArrayList<Map<String, String>> groupData;
   
-  // коллекция для элементов одной группы
+  // пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ
   ArrayList<Map<String, String>> childDataItem;
 
-  // общая коллекция для коллекций элементов
+  // пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ
   ArrayList<ArrayList<Map<String, String>>> childData;
-  // в итоге получится childData = ArrayList<childDataItem>
+  // пїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ childData = ArrayList<childDataItem>
   
-  // список аттрибутов группы или элемента
+  // пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ
   Map<String, String> m;
 
   ExpandableListView elvMain;
@@ -38,38 +38,38 @@ public class BookExpandableListView extends Activity {
     /** Called when the activity is first created. */
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.main);
+        setContentView(R.layout.main_amr);
         
-        // заполняем коллекцию групп из массива с названиями групп
+        // пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ
         groupData = new ArrayList<Map<String, String>>();
         for (String group : groups) {
-          // заполняем список аттрибутов для каждой группы
+          // пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ
           m = new HashMap<String, String>();
-            m.put("groupName", group); // имя компании
+            m.put("groupName", group); // пїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ
             groupData.add(m);  
         }
         
-        // список аттрибутов групп для чтения
+        // пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ
         String groupFrom[] = new String[] {"groupName"};
-        // список ID view-элементов, в которые будет помещены аттрибуты групп
+        // пїЅпїЅпїЅпїЅпїЅпїЅ ID view-пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ, пїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ
         int groupTo[] = new int[] {android.R.id.text1};
         
 
-        // создаем коллекцию для коллекций элементов 
+        // пїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ 
         childData = new ArrayList<ArrayList<Map<String, String>>>(); 
         
-        // создаем коллекцию элементов для первой группы
+        // пїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ
         childDataItem = new ArrayList<Map<String, String>>();
-        // заполняем список аттрибутов для каждого элемента
+        // пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ
         for (String phone : phonesHTC) {
           m = new HashMap<String, String>();
-            m.put("phoneName", phone); // название телефона
+            m.put("phoneName", phone); // пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ
             childDataItem.add(m);  
         }
-        // добавляем в коллекцию коллекций
+        // пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ
         childData.add(childDataItem);
 
-        // создаем коллекцию элементов для второй группы        
+        // пїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ        
         childDataItem = new ArrayList<Map<String, String>>();
         for (String phone : phonesSams) {
           m = new HashMap<String, String>();
@@ -78,7 +78,7 @@ public class BookExpandableListView extends Activity {
         }
         childData.add(childDataItem);
 
-        // создаем коллекцию элементов для третьей группы        
+        // пїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ        
         childDataItem = new ArrayList<Map<String, String>>();
         for (String phone : phonesLG) {
           m = new HashMap<String, String>();
@@ -87,9 +87,9 @@ public class BookExpandableListView extends Activity {
         }
         childData.add(childDataItem);
 
-        // список аттрибутов элементов для чтения
+        // пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ
         String childFrom[] = new String[] {"phoneName"};
-        // список ID view-элементов, в которые будет помещены аттрибуты элементов
+        // пїЅпїЅпїЅпїЅпїЅпїЅ ID view-пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ, пїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ
         int childTo[] = new int[] {android.R.id.text1};
         
         SimpleExpandableListAdapter adapter = new SimpleExpandableListAdapter(

@@ -4,7 +4,7 @@ dir
 53
 https://mplatforma.com/svn/repo/AMR_K/bin/res
 https://mplatforma.com/svn/repo
-
+delete
 
 
 2012-03-18T17:03:55.916853Z
@@ -32,25 +32,4 @@ svn:special svn:externals svn:needs-lock
 
 
 0
-
-drawable-hdpi
-dir
-
-
-
-add
-
-drawable-ldpi
-dir
-
-
-
-add
-
-drawable-mdpi
-dir
-
-
-
-add
 

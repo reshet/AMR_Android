@@ -43,7 +43,7 @@ public class ZipDecopmosed {
 					//long size = entry.getSize();
 					//if(size > 0)
 					ByteArrayOutputStream str = new ByteArrayOutputStream();
-					byte [] buff = new byte[2048];
+					byte [] buff = new byte[8096];
 //					for (int c = jFile.read(); c != -1; c = jFile.read()) { 
 //			            str.write(c); 
 //			          } 
@@ -56,6 +56,7 @@ public class ZipDecopmosed {
 					//jFile.read(arr);
 					dh.update_page(p_ids.get(index), arr);
 					index++;
+					
 				}
 				jFile.closeEntry();
 				//jFile.getNextEntry();

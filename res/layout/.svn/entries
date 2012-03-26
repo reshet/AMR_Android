@@ -313,7 +313,7 @@ file
 
 
 
-
+delete
 2012-01-29T18:00:09.909000Z
 9db63255f607967845ecaf9e76860fee
 2012-01-29T16:54:30.736127Z
@@ -341,6 +341,29 @@ reshet
 
 
 800
+
+main_amr.xml
+file
+
+
+
+add
+
+9db63255f607967845ecaf9e76860fee
+
+
+
+
+
+
+
+
+
+
+
+copied
+https://mplatforma.com/svn/repo/AMR_K/res/layout/main.xml
+8
 
 pdf_file_password.xml
 file

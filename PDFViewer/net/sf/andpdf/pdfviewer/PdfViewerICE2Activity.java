@@ -38,10 +38,12 @@ import android.graphics.Paint;
 import android.graphics.PointF;
 import android.graphics.RectF;
 import android.graphics.Bitmap.Config;
+import android.graphics.drawable.Drawable;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Environment;
 import android.os.Handler;
+import android.os.Message;
 import android.util.FloatMath;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -55,6 +57,7 @@ import android.view.View.OnTouchListener;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.FrameLayout;
+import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.ImageView.ScaleType;
 import android.widget.LinearLayout;
@@ -63,7 +66,9 @@ import android.widget.TextView;
 
 import com.mplatforma.amr.AttachmentsListActivity;
 import com.mplatforma.amr.R;
+import com.mplatforma.amr.ShelfBooksActivity;
 import com.mplatforma.amr.VideoPlayer;
+import com.mplatforma.amr.server.AttachmentDTO;
 import com.mplatforma.amr.server.PageDTO;
 import com.mplatforma.amr.server.ServerConnector;
 import com.sun.pdfview.PDFFile;
@@ -289,8 +294,8 @@ public class PdfViewerICE2Activity extends Activity{
         menu.add(Menu.NONE, MEN_PREV_PAGE, Menu.NONE, "Previous Page");
         menu.add(Menu.NONE, MEN_NEXT_PAGE, Menu.NONE, "Next Page");
         menu.add(Menu.NONE, MEN_GOTO_PAGE, Menu.NONE, "Goto Page");
-        menu.add(Menu.NONE, MEN_ZOOM_OUT, Menu.NONE, "Zoom Out");
-        menu.add(Menu.NONE, MEN_ZOOM_IN, Menu.NONE, "Zoom In");
+        //menu.add(Menu.NONE, MEN_ZOOM_OUT, Menu.NONE, "Zoom Out");
+        //menu.add(Menu.NONE, MEN_ZOOM_IN, Menu.NONE, "Zoom In");
         menu.add(Menu.NONE, MEN_BACK, Menu.NONE, "Back");
         menu.add(Menu.NONE, MEN_ATTS, Menu.NONE, "Attachments");
         if (HardReference.sKeepCaches)
@@ -431,23 +436,27 @@ public class PdfViewerICE2Activity extends Activity{
         case DIALOG_LOAD:
 	        //LayoutInflater factory2 = LayoutInflater.from(this);
 	       // final View pagenumView2 = factory2.inflate(R.layout.dialog_load, null);
-	        ProgressDialog progressDialog;
-	        progressDialog = new ProgressDialog(this);
-	        progressDialog.setProgressStyle(ProgressDialog.STYLE_HORIZONTAL);
-	        progressDialog.setMessage("Loading...");
-	        progressDialog.setCancelable(false);
-			return progressDialog;
+	        
+        	progressLoadPDFDialog = new ProgressDialog(this);
+        	progressLoadPDFDialog.setProgressStyle(ProgressDialog.STYLE_HORIZONTAL);
+        	progressLoadPDFDialog.setMessage("Loading...");
+        	progressLoadPDFDialog.setMax(100);
+        	progressLoadPDFDialog.setCancelable(false);
+			return progressLoadPDFDialog;
         case DIALOG_UNZIPPING:
-	        ProgressDialog progressDialog2;
-	        progressDialog2 = new ProgressDialog(this);
-	        progressDialog2.setProgressStyle(ProgressDialog.STYLE_HORIZONTAL);
-	        progressDialog2.setMessage("Loading...");
-	        progressDialog2.setCancelable(false);
-			return progressDialog2;
+        	progressUnzipPDFDialog = new ProgressDialog(this);
+        	progressUnzipPDFDialog.setProgressStyle(ProgressDialog.STYLE_HORIZONTAL);
+        	progressUnzipPDFDialog.setMessage("Loading...");
+        	progressUnzipPDFDialog.setCancelable(false);
+        	progressUnzipPDFDialog.setMax(100);
+			return progressUnzipPDFDialog;
         	
         }        
         return null;
     }
+    ProgressDialog progressLoadPDFDialog;
+    ProgressDialog progressUnzipPDFDialog;
+    ProgressDialog progressLoadATTDialog;
     
 	private class GraphView extends FullScrollView implements OnTouchListener{
     	private String mText;
@@ -464,7 +473,19 @@ public class PdfViewerICE2Activity extends Activity{
     	private TextView mLine3View; 
     	private Button mBtPage;
     	private Button mBtPage2;
+    	
+    	private ImageButton bb;
+    	public void removeExtBtn()
+    	{
+    		vl.removeView(bb);
+    	}
+    	
        // private ProgressBar bar;
+    	public void addExtBtn(ImageButton b)
+    	{
+    			this.bb = b;
+    			vl.addView(bb);
+    		    	}
         protected void setFileLoaded()
         {
         	//bar.setVisibility(ProgressBar.INVISIBLE);
@@ -487,18 +508,41 @@ public class PdfViewerICE2Activity extends Activity{
            // Dump touch event to log
            dumpEvent(event);
 
+           if(event.getAction() == MotionEvent.EDGE_LEFT)
+        	   prevPage();
+           if(event.getAction() == MotionEvent.EDGE_RIGHT)
+        	   nextPage();
+           
            // Handle touch events here...
            switch (event.getAction() & MotionEvent.ACTION_MASK) {
+//           case MotionEvent.EDGE_LEFT:
+//        	   prevPage();
+//        	   break;
+//           case MotionEvent.EDGE_RIGHT:
+//        	   nextPage();
+//        	   break;
            case MotionEvent.ACTION_DOWN:
-              savedMatrix.set(matrix);
+               
+        	  savedMatrix.set(matrix);
               start.set(event.getX(), event.getY());
               Log.d(TAG, "mode=DRAG" );
               mode = DRAG;
+              
               break;
            case MotionEvent.ACTION_UP:
            case MotionEvent.ACTION_POINTER_UP:
               mode = NONE;
               Log.d(TAG, "mode=NONE" );
+              if(Math.abs(event.getX()-start.x) < 10 && Math.abs(event.getY()-start.y) < 10)
+              {
+            	  if(event.getX() < getWindowManager().getDefaultDisplay().getWidth()/2)
+            	  {
+            		  prevPage();
+            	  }else
+            	  {
+            		  nextPage();
+            	  }
+              }
               break;
            case MotionEvent.ACTION_POINTER_DOWN:
          	   oldDist = spacing(event);
@@ -574,7 +618,7 @@ public class PdfViewerICE2Activity extends Activity{
            sb.append("]" );
            Log.d(TAG, sb.toString());
         }
-        class CoolLayout extends LinearLayout
+        class CoolLayout extends FrameLayout
         {
         	private ImageView img;
 			public CoolLayout(Context context) {
@@ -593,6 +637,8 @@ public class PdfViewerICE2Activity extends Activity{
 			
         	
         }
+        
+        private CoolLayout vl;
         public GraphView(Context context) {
             super(context);
 
@@ -601,10 +647,10 @@ public class PdfViewerICE2Activity extends Activity{
 			LinearLayout.LayoutParams lpWrap10 = new LinearLayout.LayoutParams(LayoutParams.WRAP_CONTENT,LayoutParams.WRAP_CONTENT,10);
 
             // vertical layout
-			CoolLayout vl=new CoolLayout(context);
+			FrameLayout fr = new FrameLayout(context);
+			vl=new CoolLayout(context);
 			vl.setLayoutParams(lpWrap10);
-			vl.setOrientation(LinearLayout.VERTICAL);
-
+			//vl.setOrientation(LinearLayout.VERTICAL);
 			
 //			 bar = new ProgressBar(getContext());
 //			bar.setVisibility(ProgressBar.VISIBLE);
@@ -853,11 +899,33 @@ public class PdfViewerICE2Activity extends Activity{
     		
      	     
      	  	        Bitmap bi = dhlpr.getPage(pages_IDS.get(page));
+     	  	        
+     	  	        List<AttachmentDTO> atts = dhlpr.getAttachments(pages_IDS.get(page));
      	  	        mZoom = (float)dhlpr.getZoom(page);
      	  	        mGraphView.setPageBitmap(bi);
      	  	        mGraphView.updateImage();
      	  	        
-     	  	        
+     	  	        if(atts.size()>0)
+     	  	        {
+     	  	        	
+     	  	        	LayoutInflater inflater = PdfViewerICE2Activity.this.getLayoutInflater();  
+     	                ImageButton extView = (ImageButton) inflater.inflate(R.layout.att_btn, null, true);  
+     	               
+     	  	        	//ImageButton b = (ImageButton)findViewById(R.id.att_btn_id);
+     	  	             	  	            
+     	  	        //	b.setBackgroundResource(R.id);
+         	  	        extView.setOnClickListener(new OnClickListener() {
+    						@Override
+    						public void onClick(View v) {
+    							showAttsList();
+    						}
+    					});
+         	  	       mGraphView.addExtBtn(extView);
+         	  	     }else
+         	  	     {
+         	  	    	 mGraphView.removeExtBtn();
+         	  	     }
+     	  	            	  	        
      	  	        
      	  	        
 //     	  	        mPdfPage = mPdfLoaded.getPage(page, true);
@@ -923,6 +991,21 @@ public class PdfViewerICE2Activity extends Activity{
       
     }
     
+    
+    
+    final Handler loadPDFhandler = new Handler() {
+        public void handleMessage(Message msg) {
+            // Get the current value of the variable total from the message data
+            // and update the progress bar.
+            int total = msg.getData().getInt("loaded");
+            if (progressLoadPDFDialog!=null) progressLoadPDFDialog.setProgress(total);
+            if (total >= 100 && progressLoadPDFDialog!=null){
+                dismissDialog(DIALOG_LOAD);
+                progressLoadPDFDialog = null;
+                //progThread.setState(ProgressThread.DONE);
+            }
+        }
+    };
     private void loadPDF(Integer book_id,String password) throws PDFAuthenticationFailureException {
        try {
     	   List<Integer> pages = dhlpr.getBookPageIDs(book_id);
@@ -933,7 +1016,8 @@ public class PdfViewerICE2Activity extends Activity{
              	 {
              		ServerConnector c = new ServerConnector(dhlpr);
              		//ArrayList<Book> books = dhlpr.getAllBooks();
-                	c.serverGetBook(dhlpr.getBookExtID(book_id));
+             		showDialog(DIALOG_LOAD);
+                	c.serverGetBook(loadPDFhandler,dhlpr.getBookExtID(book_id));
                 	
              	 }
     		   	pages_IDS = dhlpr.getBookPageIDs(book_id);

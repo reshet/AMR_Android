@@ -798,7 +798,7 @@ public class PdfViewerICEActivity extends Activity {
              	 {
              		ServerConnector c = new ServerConnector(dhlpr);
              		//ArrayList<Book> books = dhlpr.getAllBooks();
-                	c.serverGetBook(dhlpr.getBookExtID(book_id));
+                	//c.serverGetBook(dhlpr.getBookExtID(book_id));
              	 }
              	 
              	 byte [] arr2 = dhlpr.getBookContents(book_id);
