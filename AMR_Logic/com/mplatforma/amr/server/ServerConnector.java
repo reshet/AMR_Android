@@ -9,6 +9,8 @@ import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
 
+import net.sf.andpdf.pdfviewer.PdfViewerICE2Activity.Commandir;
+
 import org.apache.commons.io.IOUtils;
 import org.apache.http.HttpResponse;
 import org.apache.http.NameValuePair;
@@ -54,7 +56,7 @@ public class ServerConnector {
     private String base_url = "http://mplatforma.com:8080/AMR_Facade/";
      public static String base_atts_path = Environment.getExternalStorageDirectory()+"/amr_attachs/";
     //private String base_url = "http://109.251.134.144:8080/AMR_Facade/";
-	public void serverGetBook(final Handler mHandler,final int book_id)
+	public void serverGetBook(final Handler mHandler,final int book_id,final Commandir ccc)
     {
 	
     	new Thread()
@@ -136,12 +138,15 @@ public class ServerConnector {
                      				//dh.insert_book(new BookDTO(1,"Book from inet)",new ArrayList<PageDTO>()));
                      				new ZipDecopmosed().unpack(book_id, dh, arr);
                      				//dh.update_book(book_id, arr);
-//                     				Message m = page_hdlr.obtainMessage();
-//                     				Bundle b=   new Bundle();
-//                     				b.putString("value", "downloaded");
-//                     				m.setData(b);
-//                     				page_hdlr.sendMessage(m);
-//                     				done = true;
+                     				serverGetBookGlance(book_id);
+                     				Message m = new Message();
+                     				Bundle b=   new Bundle();
+                     				b.putString("value", "downloaded");
+                     				m.setData(b);
+                     				
+                     				//page_hdlr.sendMessage(m);
+                     				//done = true;
+                     				ccc.sendMessage(m);
                      				return null;
                      			}
                      		};
@@ -177,6 +182,104 @@ public class ServerConnector {
     	
     }
 	
+	
+	public void serverGetBookGlance(final int book_id)
+    {
+	
+    
+    		 final int DONE = 0;
+             final int RUNNING = 1;
+             
+            
+             int mState;
+             int total;
+            
+                 mState = RUNNING;   
+                // total = maxBarValue;
+                 
+                 
+                     
+                         // Control speed of update (but precision of delay not guaranteed)
+                        // Thread.sleep(100);
+                        	String url = base_url+"downloadBinary";
+                        	DefaultHttpClient cl = new DefaultHttpClient();
+                        	if(!url.endsWith("?"))
+                     	        url += "?";
+
+                     	    List<NameValuePair> params = new LinkedList<NameValuePair>();
+
+                     	    if (book_id != 0){
+                     	        params.add(new BasicNameValuePair("id", String.valueOf(book_id)));
+                     	      //  params.add(new BasicNameValuePair("type", "pdf"));
+                     	        params.add(new BasicNameValuePair("type", "cover"));
+                     	    }	
+                     	  
+                     	    String paramString = URLEncodedUtils.format(params, "utf-8");
+                     	    url += paramString;
+                     	    
+                     	    HttpGet getMethod = new HttpGet(url);
+                     		//getMethod.setParams()
+                     		final ResponseHandler<String> reps_hdlr = new ResponseHandler<String>() {
+                     			@Override
+                     			public String handleResponse(HttpResponse paramHttpResponse)
+                     					throws ClientProtocolException, IOException {
+                     				String respMsg="";
+                     				Log.d("catdebug.log","gor resp: "+paramHttpResponse.getStatusLine().toString());
+                     				InputStream respStream = paramHttpResponse.getEntity().getContent();		
+                     				
+                     				long total_length = paramHttpResponse.getEntity().getContentLength(); 
+                     				long loaded_length = 0;
+                     				//respStream.r
+                     				ByteArrayOutputStream str = new ByteArrayOutputStream();
+                					byte [] buff = new byte[120000];
+//                					for (int c = jFile.read(); c != -1; c = jFile.read()) { 
+//                			            str.write(c); 
+//                			          } 
+                					for (int c = respStream.read(buff); c > -1; c = respStream.read(buff)) { 
+                			            str.write(buff,0,c); 
+                			            loaded_length+=c;
+                			            
+                			            int loaded_percent = (int) (((double)loaded_length/total_length)*100);
+                			          } 
+                					
+                					
+                					
+                					byte [] arr = str.toByteArray();
+                     				dh.update_cover(book_id, arr);
+                     				//byte [] arr = IOUtils.toByteArray(respStream);
+                     				
+                     				
+                     				return null;
+                     			}
+                     		};
+                     		try {
+                     				cl.execute(getMethod,reps_hdlr);
+                     		} catch (ClientProtocolException e) {
+                     			// TODO Auto-generated catch block
+                     			e.printStackTrace();
+                     		} catch (IOException e) {
+                     			// TODO Auto-generated catch block
+                     			e.printStackTrace();
+                     		}
+                         	String response="";
+                 	 
+                         
+                    	
+                     
+                     // Send message (with current value of  total as data) to Handler on UI thread
+                     // so that it can update the progress bar.
+                     
+                   
+                     
+                     //total--;    // Count down
+           
+             
+             
+             // Set current state of thread (use state=ProgressThread.DONE to stop thread)
+
+        	// The URL for making the GET request
+    	
+    }
 	public void serverGetAttachment(final int att_id,final int server_att_id)
     {
     	

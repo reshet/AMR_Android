@@ -65,6 +65,7 @@ import android.widget.ProgressBar;
 import android.widget.TextView;
 
 import com.mplatforma.amr.AttachmentsListActivity;
+import com.mplatforma.amr.BookmarksActivity;
 import com.mplatforma.amr.R;
 import com.mplatforma.amr.ShelfBooksActivity;
 import com.mplatforma.amr.VideoPlayer;
@@ -80,6 +81,7 @@ import com.sun.pdfview.decrypt.PDFPassword;
 import com.sun.pdfview.font.PDFFont;
 
 import db.Book;
+import db.Bookmark;
 import db.DataHelper;
 
 
@@ -104,6 +106,11 @@ public class PdfViewerICE2Activity extends Activity{
 	private final static int MEN_BACK      = 6;
 	private final static int MEN_CLEANUP   = 7;
 	private final static int MEN_ATTS   = 8;
+	private final static int MEN_BOOKMARKS   = 9;
+	private final static int MEN_CREATE_BOOKMARK   = 10;
+	private final static int MEN_DELETE_BOOKMARK   = 11;
+	
+	
 	
 	
 	private final static int DIALOG_PAGENUM = 1;
@@ -123,7 +130,7 @@ public class PdfViewerICE2Activity extends Activity{
     private Thread backgroundThread;
     private Thread bckgrCacheThread = null;
     private Handler uiHandler;
-
+    private boolean has_bookmark=false;
     private List<Integer> pages_IDS = new ArrayList<Integer>();
 	
 	@Override
@@ -178,7 +185,7 @@ public class PdfViewerICE2Activity extends Activity{
 	        mGraphView.pageParseMillis= mOldGraphView.pageParseMillis;
 	        mGraphView.pageRenderMillis= mOldGraphView.pageRenderMillis;
 	        mOldGraphView = null;
-	        mGraphView.mImageView.setImageBitmap(mGraphView.mBi);
+	        //mGraphView.mImageView.setImageBitmap(mGraphView.mBi);
 	       // mGraphView.updateTexts();
 	        setContentView(mGraphView);
         }
@@ -222,8 +229,7 @@ public class PdfViewerICE2Activity extends Activity{
         try { 
         //	showDialog(DIALOG_LOAD);
     		loadPDF(pdf_id,password);
-	        startRenderThread(mPage, mZoom);
-	        setContentView(mGraphView);
+	       
 	        //dismissDialog(DIALOG_LOAD);
     	}
         catch (PDFAuthenticationFailureException e) {
@@ -286,22 +292,43 @@ public class PdfViewerICE2Activity extends Activity{
 			}
 		}, 1000);
 	}
-
 	
+	private void createOptMenu(Menu menu)
+	{
+		
+		has_bookmark = false;
+		ArrayList<Bookmark> bmaks = dhlpr.getBookmarks(new Book(pdf_id,0,null,null,0,null));
+        for(int i=0; i < bmaks.size();i++)
+        {
+        	if(current_page_number == bmaks.get(i).getPage()) {has_bookmark=true;break;}
+        	if(bmaks.get(i).getPage() <=0) dhlpr.delete_bookmark(bmaks.get(i).getID(),pdf_id);
+        }
+        menu.clear();
+		 menu.add(Menu.NONE, MEN_GOTO_PAGE, Menu.NONE, "До стор.");
+	        //menu.add(Menu.NONE, MEN_ZOOM_OUT, Menu.NONE, "Zoom Out");
+	        //menu.add(Menu.NONE, MEN_ZOOM_IN, Menu.NONE, "Zoom In");
+	        menu.add(Menu.NONE, MEN_BACK, Menu.NONE, "Назад");
+	        menu.add(Menu.NONE, MEN_ATTS, Menu.NONE, "Додатки");
+	        menu.add(Menu.NONE, MEN_BOOKMARKS, Menu.NONE, "Закладки");
+	        if(!has_bookmark)
+	        	menu.add(Menu.NONE, MEN_CREATE_BOOKMARK, Menu.NONE, "Додати закл.");
+	        else
+	         	menu.add(Menu.NONE, MEN_DELETE_BOOKMARK, Menu.NONE, "Видалити закл.");
+	         	
+//	        if (HardReference.sKeepCaches)
+//	            menu.add(Menu.NONE, MEN_CLEANUP, Menu.NONE, "Clear Caches");
+
+	}
+	private Menu men = null;
 	@Override
     public boolean onCreateOptionsMenu(Menu menu) {
         super.onCreateOptionsMenu(menu);
-        menu.add(Menu.NONE, MEN_PREV_PAGE, Menu.NONE, "Previous Page");
-        menu.add(Menu.NONE, MEN_NEXT_PAGE, Menu.NONE, "Next Page");
-        menu.add(Menu.NONE, MEN_GOTO_PAGE, Menu.NONE, "Goto Page");
-        //menu.add(Menu.NONE, MEN_ZOOM_OUT, Menu.NONE, "Zoom Out");
-        //menu.add(Menu.NONE, MEN_ZOOM_IN, Menu.NONE, "Zoom In");
-        menu.add(Menu.NONE, MEN_BACK, Menu.NONE, "Back");
-        menu.add(Menu.NONE, MEN_ATTS, Menu.NONE, "Attachments");
-        if (HardReference.sKeepCaches)
-            menu.add(Menu.NONE, MEN_CLEANUP, Menu.NONE, "Clear Caches");
-        	
-        return true;
+        //menu.add(Menu.NONE, MEN_PREV_PAGE, Menu.NONE, "Previous Page");
+        //menu.add(Menu.NONE, MEN_NEXT_PAGE, Menu.NONE, "Next Page");
+       
+        createOptMenu(menu);
+        men = menu;
+       return true;
     }
     
     /**
@@ -343,10 +370,31 @@ public class PdfViewerICE2Activity extends Activity{
             showAttsList();
             break;
     	}
+    	case MEN_BOOKMARKS: {
+            showBMList();
+            break;
+    	}
+    	case MEN_CREATE_BOOKMARK: {
+            doCreateBookmark();
+            break;
+    	}
+    	case MEN_DELETE_BOOKMARK: {
+            doDeleteBookmark();
+            break;
+    	}
     	}
     	return true;
     }
-    
+    private void doCreateBookmark()
+    {
+    	dhlpr.insert_bookmark(pdf_id, current_page_number, "");
+    	createOptMenu(men);
+    }
+    private void doDeleteBookmark()
+    {
+    	dhlpr.delete_bookmark(current_page_number,pdf_id);
+    	createOptMenu(men);
+    }
     private void showAttsList()
     {
     	int page_id = pages_IDS.get(mPage);
@@ -354,6 +402,12 @@ public class PdfViewerICE2Activity extends Activity{
 		.putExtra("PAGE_ID", page_id);
 		startActivityForResult(intent,1); 
     	
+    }
+    private void showBMList()
+    {
+    	Intent intent = new Intent(this,BookmarksActivity.class)
+		.putExtra("BOOK_ID", pdf_id);
+		startActivityForResult(intent,1); 
     }
     private void zoomIn() {
     	if (mPdfLoaded != false) {
@@ -845,17 +899,17 @@ public class PdfViewerICE2Activity extends Activity{
 			if (bi != null)
 				mBi = bi;
 			else {
-				mBi = Bitmap.createBitmap(100, 100, Config.RGB_565);
-	            Canvas can = new Canvas(mBi);
-	            can.drawColor(Color.RED);
-	            
-				Paint paint = new Paint();
-	            paint.setColor(Color.BLUE);
-	            can.drawCircle(50, 50, 50, paint);
-	            
-	            paint.setStrokeWidth(0);
-	            paint.setColor(Color.BLACK);
-	            can.drawText("Bitmap", 10, 50, paint);
+//				mBi = Bitmap.createBitmap(100, 100, Config.RGB_565);
+//	            Canvas can = new Canvas(mBi);
+//	            can.drawColor(Color.RED);
+//	            
+//				Paint paint = new Paint();
+//	            paint.setColor(Color.BLUE);
+//	            can.drawCircle(50, 50, 50, paint);
+//	            
+//	            paint.setStrokeWidth(0);
+//	            paint.setColor(Color.BLACK);
+//	            can.drawText("Bitmap", 10, 50, paint);
 			}
 		}
         
@@ -899,12 +953,18 @@ public class PdfViewerICE2Activity extends Activity{
     		
      	     
      	  	        Bitmap bi = dhlpr.getPage(pages_IDS.get(page));
-     	  	        
+     	  	        current_page_number = page;
+     	  	        if(men != null)onCreateOptionsMenu(men);
+  	  	        	ArrayList<Bookmark> bmaks = dhlpr.getBookmarks(new Book(pdf_id,0,null,null,0,null));
+     	  	        for(int i=0; i < bmaks.size();i++)
+     	  	        {
+     	  	        	if(current_page_number == bmaks.get(i).getPage()) {has_bookmark=true;break;}
+     	  	        	if(bmaks.get(i).getPage() <=0) dhlpr.delete_bookmark(bmaks.get(i).getPage(),pdf_id);
+     	  	        }
      	  	        List<AttachmentDTO> atts = dhlpr.getAttachments(pages_IDS.get(page));
      	  	        mZoom = (float)dhlpr.getZoom(page);
      	  	        mGraphView.setPageBitmap(bi);
      	  	        mGraphView.updateImage();
-     	  	        
      	  	        if(atts.size()>0)
      	  	        {
      	  	        	
@@ -1017,11 +1077,10 @@ public class PdfViewerICE2Activity extends Activity{
              		ServerConnector c = new ServerConnector(dhlpr);
              		//ArrayList<Book> books = dhlpr.getAllBooks();
              		showDialog(DIALOG_LOAD);
-                	c.serverGetBook(loadPDFhandler,dhlpr.getBookExtID(book_id));
+             		c.serverGetBook(loadPDFhandler,dhlpr.getBookExtID(book_id),new Commandir(book_id));
                 	
              	 }
-    		   	pages_IDS = dhlpr.getBookPageIDs(book_id);
-    		   	 mPdfLoaded = true;
+    		   	new Commandir(book_id).doCommand();
              	 //byte [] arr2 = dhlpr.getBookContents(book_id);
          	
     	        //openFile(book_id);
@@ -1032,7 +1091,43 @@ public class PdfViewerICE2Activity extends Activity{
 			//mGraphView.showText("Exception: "+e.getMessage());
 		}
     }
-
+    
+    
+//    public class Commandir
+//    {
+//    	private int book_id;
+//    	public void setHandlerBook(int book_id)
+//    	{
+//    		this.book_id = book_id;
+//    	}
+//    	public void handleMessage(Message m)
+//    	{
+//    		pages_IDS = dhlpr.getBookPageIDs(book_id);
+//		   	 mPdfLoaded = true;
+//		   	 startRenderThread(mPage, mZoom);
+//		        setContentView(mGraphView);
+//    	}
+//    };
+    public class Commandir extends Handler
+    {
+    	private int book_id;
+    	public Commandir(int book_id)
+    	{
+    		this.book_id = book_id;
+    	}
+    	public void doCommand()
+    	{
+    		pages_IDS = dhlpr.getBookPageIDs(book_id);
+		   	 mPdfLoaded = true;
+		   	 startRenderThread(mPage, mZoom);
+		        setContentView(mGraphView);
+    	}
+    	@Override
+    	public void handleMessage(Message m)
+    	{
+    		doCommand();
+    	}
+    }
     
     /**
      * <p>Open a specific pdf file.  Creates a DocumentInfo from the file,

@@ -15,9 +15,10 @@ public class Book implements Serializable{
 		this.id = id;
 		this.exid = exid;
 		this.title = title;
-		if (cover!=null)System.arraycopy(cover, 0, this.cover, 0, cover.length);
+		this.cover = cover;
+		//if (cover!=null)System.arraycopy(cover, 0, this.cover, 0, cover.length);
 		this.numb = numb;
-		if (book!=null)System.arraycopy(book, 0, this.book, 0, book.length);
+		//if (book!=null)System.arraycopy(book, 0, this.book, 0, book.length);
 	}
 	public int getId(){
 		return this.id;

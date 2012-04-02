@@ -1,6 +1,9 @@
 package com.mplatforma.amr;
+import java.io.ByteArrayInputStream;
 import java.util.ArrayList;
 import java.util.Collection;
+
+import org.apache.commons.io.IOUtils;
 
 import net.sf.andpdf.pdfviewer.PdfFileSelectActivity;
 import net.sf.andpdf.pdfviewer.PdfViewerActivity;
@@ -17,6 +20,8 @@ import db.Bookmark;
 import db.DataHelper;
 import android.app.ExpandableListActivity;
 import android.content.Intent;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.graphics.Color;
 import android.os.Bundle;
 import android.util.Log;
@@ -60,7 +65,7 @@ public class ShelfBooksActivity extends ExpandableListActivity {
     
     private String[][] bookmarks;
     private String[][] pages;
-
+    ArrayList<Book> bookslist = new ArrayList<Book>();
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -84,7 +89,6 @@ public class ShelfBooksActivity extends ExpandableListActivity {
 //        dh.insert_book(new BookDTO(2,"Book 2)",new ArrayList<PageDTO>()));
 //        dh.insert_book(new BookDTO(3,"Book 3)",new ArrayList<PageDTO>()));
 //        
-        ArrayList<Book> bookslist = new ArrayList<Book>();
         bookslist = dh.getAllBooks();
 //        dh.insert_bookmark(bookslist.get(0).getId(), 24, "First, book1");
 //        dh.insert_bookmark(bookslist.get(1).getId(), 12, "Second, book2");
@@ -131,7 +135,7 @@ public class ShelfBooksActivity extends ExpandableListActivity {
 
     @Override
     public void onCreateContextMenu(ContextMenu menu, View v, ContextMenuInfo menuInfo) {
-        menu.setHeaderTitle("Loading book...");
+        menu.setHeaderTitle("Завантажуємо книгу...");
         menu.add(0, 0, 0, R.string.hello);
         menu.add(0, 0, 0, menuInfo.toString());
         
@@ -221,11 +225,13 @@ public class ShelfBooksActivity extends ExpandableListActivity {
             l.setPadding(53, 0, 0, 0);
             
             TextView textView2 = new TextView(ShelfBooksActivity.this);  
-            ImageView imageView = new ImageView(ShelfBooksActivity.this);  
+            ImageView imageView = new ImageView(ShelfBooksActivity.this);
+           
+            //imageView.setImageBitmap()
             textView2.setText(txt);  
            // textView2.setText(getGroup(groupPosition).toString()); 
             Button button =  new Button(ShelfBooksActivity.this);
-            button.setText("Открыть");
+            button.setText("Відкрити");
             l.addView(imageView);
             l.addView(textView2);
             l.addView(button);
@@ -262,6 +268,18 @@ public class ShelfBooksActivity extends ExpandableListActivity {
              rowView.setLayoutParams(lp);
              TextView textView = (TextView) rowView.findViewById(R.id.label);  
              ImageView imageView = (ImageView) rowView.findViewById(R.id.icon);  
+             Book b =bookslist.get(groupPosition);
+             if(b!=null){
+            	 
+             byte [] ar = b.getCover();
+                     if(ar != null)
+          		   {
+          			   ByteArrayInputStream inputStream = new ByteArrayInputStream(ar);
+          			   Bitmap	bi = BitmapFactory.decodeStream(inputStream);   
+          			   //imageView.
+          			   imageView.setImageBitmap(bi);
+          		   }
+             }
              //textView.setText(names.get(position));  
              
              Button button =  (Button) rowView.findViewById(R.id.BtnToClick);

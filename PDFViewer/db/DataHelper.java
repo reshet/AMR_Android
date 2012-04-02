@@ -25,7 +25,7 @@ import android.util.Log;
 public class DataHelper {
  
    private static final String DATABASE_NAME = "AMR_DB.db";
-   private static final int DATABASE_VERSION = 3;
+   private static final int DATABASE_VERSION = 5;
    
    private static final String BITMAP_TABLE_NAME = "bitmaps";
    private static final String BOOK_TABLE_NAME = "books";
@@ -134,6 +134,11 @@ public class DataHelper {
    private static final String DELETE_PAGE = "delete * from "
 		   + PAGE_TABLE_NAME 
 		   + " where " + PAGE_COLUMN_ID + " = ?";
+   
+   private static final String DELETE_BOOKMARK = "delete from "
+		   + BOOKMARK_TABLE_NAME 
+		   + " where " + BOOKMARK_COLUMN_PAGE + " = ? AND "
+		    + BOOKMARK_COLUMN_BOOKID + " = ?";
    
    private static final String DELETE_BOOK = "delete * from "
 		   + BOOK_TABLE_NAME 
@@ -279,6 +284,14 @@ public class DataHelper {
 	   Object[] bindArgs = new Object[] {id};
 	   try{
 		  this.db.execSQL(DELETE_ATTACHMENT, bindArgs);
+	   }catch(SQLException e){
+		   Log.e("Error update", e.toString());
+	   }
+   }
+   public void delete_bookmark(int page_id,int book_id){
+	   Object[] bindArgs = new Object[] {page_id,book_id};
+	   try{
+		  this.db.execSQL(DELETE_BOOKMARK, bindArgs);
 	   }catch(SQLException e){
 		   Log.e("Error update", e.toString());
 	   }

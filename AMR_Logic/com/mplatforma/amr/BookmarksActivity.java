@@ -2,14 +2,12 @@ package com.mplatforma.amr;
 
 import java.util.ArrayList;
 
-import javax.crypto.spec.PSource;
-
-import com.mplatforma.amr.server.AttachmentDTO;
 import com.mplatforma.amr.server.BookDTO;
 import com.mplatforma.amr.server.PageDTO;
 
 
 import net.sf.andpdf.pdfviewer.PdfViewerActivity;
+import net.sf.andpdf.pdfviewer.PdfViewerICE2Activity;
 
 import db.Book;
 import db.Bookmark;
@@ -28,47 +26,62 @@ import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
 
-public class AttachmentsListActivity extends ListActivity {
+public class BookmarksActivity extends ListActivity {
     /** Called when the activity is first created. */
     private DataHelper dh;
    // private final Activity context;  
     String[] desc;
-    int[] ids;
-
-    ArrayList<AttachmentDTO> atts = new ArrayList<AttachmentDTO>();
-    private int page_id = -1;
+    String[] page;
+    int[] pages;
+    public static final String EXTRA_PDFFILENAME = "net.sf.andpdf.extra.PDFFILENAME";
+	public static final String EXTRA_USEFONTSUBSTITUTION = "net.sf.andpdf.extra.USEFONTSUBSTITUTION";
+	public static final String EXTRA_KEEPCACHES = "net.sf.andpdf.extra.KEEPCACHES";
+	    public static final String EXTRA_PDF_ID = "my.pdf_id";
+	    public static final String EXTRA_SHOWIMAGES = "net.sf.andpdf.extra.SHOWIMAGES";
+	    public static final String EXTRA_ANTIALIAS = "net.sf.andpdf.extra.ANTIALIAS";
+	private long book_id = 0;
 	@Override
     public void onCreate(Bundle savedInstanceState) {
        super.onCreate(savedInstanceState);      
        this.dh = new DataHelper(this);
-       int toPage = getIntent().getIntExtra("PAGE_ID",-1);
+       book_id = getIntent().getIntExtra("BOOK_ID",-1);
+       ArrayList<Bookmark> bookmarks = new ArrayList<Bookmark>();
        
-       if(toPage!= -1)
-       {
-    	   page_id = toPage;
-	       atts = dh.getAttachments(page_id);
-	       
-	       
-	       desc = new String[atts.size()];
-	       ids = new int[atts.size()];
-	       for(int i=0; i<atts.size(); i++){
-	    	   desc[i] = atts.get(i).getName();
-	    	   ids[i] = atts.get(i).getId();
-	       }
-	       BaseAdapter mAdapter = new myAdapter(this);  
-	       setListAdapter(mAdapter);  
-	    }      
+       bookmarks = dh.getBookmarks(new Book((int)book_id,0,null,null,0,null));
+       
+       desc = new String[bookmarks.size()];
+       page = new String[bookmarks.size()];
+       pages = new int[bookmarks.size()];
+       for(int i=0; i<bookmarks.size(); i++){
+    	   desc[i] = bookmarks.get(i).getDesc();
+    	   page[i] = "page " + bookmarks.get(i).getPage()+" ";  
+    	   pages[i] = bookmarks.get(i).getPage();  
+       }
+       BaseAdapter mAdapter = new myAdapter(this);  
+       setListAdapter(mAdapter);  
+              
 	}
     public void onListItemClick (ListView parent, View v, int position, long id) { 
     	
     	super.onListItemClick(parent, v, position, id);
-    	int pos = position;
-    	Intent intent = new Intent(this,VideoPlayer.class)
-		.putExtra("ATT_ID", atts.get(pos).getId());
-		//.putExtra("ATT_LOCAL_ID", atts.get(pos).get);
-    	this.finish();
-		startActivityForResult(intent,1); 
+    	
+    	openBook((int)book_id, pages[position]);
     }  
+    
+    private void openBook(int id,int page_id)
+    {
+    	boolean useFontSubstitution = false;
+    	boolean keepCaches = true;
+  	
+    	Intent intent = new Intent(BookmarksActivity.this, PdfViewerICE2Activity.class)
+		.putExtra(EXTRA_PDF_ID, id)
+		.putExtra(EXTRA_USEFONTSUBSTITUTION, useFontSubstitution)
+		.putExtra(EXTRA_KEEPCACHES, keepCaches)
+    	.putExtra("topage", page_id);
+    	
+    	this.finish();
+    	startActivity(intent);
+    }
     	      
     	  public class myAdapter extends BaseAdapter { 
     	    private LayoutInflater mLayoutInflater;  
@@ -90,7 +103,7 @@ public class AttachmentsListActivity extends ListActivity {
     	    }  
     	          
     	    public String getString (int position) {  
-    	      return desc[position] + " (" + ids[position] + ")";  
+    	      return desc[position] + " (" + page[position] + ")";  
     	    }  
     	          
     	    public View getView(int position, View convertView, ViewGroup parent) {   
@@ -99,9 +112,13 @@ public class AttachmentsListActivity extends ListActivity {
     	               
     	      TextView sign = (TextView)convertView.findViewById(R.id.Sign);  
     	      sign.setText(desc[position]);  
+    	  
+    	      TextView date = (TextView)convertView.findViewById(R.id.Date);  
+    	      date.setText(page[position]);    
+
     	        return convertView;
     	    } 
     	    
     	  }   
-    	  	      
+   	      
 }

@@ -7,6 +7,7 @@ import com.mplatforma.amr.server.PageDTO;
 
 
 import net.sf.andpdf.pdfviewer.PdfViewerActivity;
+import net.sf.andpdf.pdfviewer.PdfViewerICE2Activity;
 
 import db.Book;
 import db.Bookmark;
@@ -32,6 +33,9 @@ public class ShelfBookmarksActivity extends ListActivity {
     String[] desc;
     String[] page;
     String[] book;
+    int [] pages;
+    int [] bookss;
+    public static final String EXTRA_PDF_ID = "my.pdf_id";
     public static final String EXTRA_PDFFILENAME = "net.sf.andpdf.extra.PDFFILENAME";
 	public static final String EXTRA_USEFONTSUBSTITUTION = "net.sf.andpdf.extra.USEFONTSUBSTITUTION";
 	public static final String EXTRA_KEEPCACHES = "net.sf.andpdf.extra.KEEPCACHES";
@@ -60,11 +64,15 @@ public class ShelfBookmarksActivity extends ListActivity {
        desc = new String[bookmarks.size()];
        page = new String[bookmarks.size()];
        book = new String[bookmarks.size()];
+       pages = new int[bookmarks.size()];
+       bookss= new int[bookmarks.size()];
        for(int i=0; i<bookmarks.size(); i++){
     	   desc[i] = bookmarks.get(i).getDesc();
     	   page[i] = "page " + bookmarks.get(i).getPage()+" ";  
     	   Book b = dh.getBook(bookmarks.get(i));
     	   book[i] = b.getTitle();
+    	   bookss[i] = b.getId();
+    	   pages[i] = bookmarks.get(i).getPage();  
        }
        // ������-�� �� �������� ����������... ��������... ��������
        //Collections.sort(bookmarks, Bookmark.getDateComparator());
@@ -75,12 +83,17 @@ public class ShelfBookmarksActivity extends ListActivity {
     public void onListItemClick (ListView parent, View v, int position, long id) { 
     	
     	super.onListItemClick(parent, v, position, id);
-    	Intent intent = new Intent(this,PdfViewerActivity.class)
-		.putExtra(EXTRA_PDFFILENAME, "/mnt/sdcard/down/HPL-2004-76 (1).pdf")
-		.putExtra(EXTRA_USEFONTSUBSTITUTION, false)
-		.putExtra(EXTRA_KEEPCACHES, false)
-		.putExtra("topage", 4);
-    	startActivityForResult(intent,1); 
+    		boolean useFontSubstitution = false;
+        	boolean keepCaches = true;
+      	
+        	Intent intent = new Intent(ShelfBookmarksActivity.this, PdfViewerICE2Activity.class)
+    		.putExtra(EXTRA_PDF_ID, bookss[position])
+    		.putExtra(EXTRA_USEFONTSUBSTITUTION, useFontSubstitution)
+    		.putExtra(EXTRA_KEEPCACHES, keepCaches)
+        	.putExtra("topage", pages[position]);
+        	
+        	startActivityForResult(intent,-1);
+        
     }  
     	      
     	  public class myAdapter extends BaseAdapter { 
