@@ -25,7 +25,7 @@ import android.util.Log;
 public class DataHelper {
  
    private static final String DATABASE_NAME = "AMR_DB.db";
-   private static final int DATABASE_VERSION = 5;
+   private static final int DATABASE_VERSION = 6;
    
    private static final String BITMAP_TABLE_NAME = "bitmaps";
    private static final String BOOK_TABLE_NAME = "books";
